@@ -1,0 +1,73 @@
+[36m==>[0m Minting shoot admin kubeconfig for 'ai-trust-1'…
+[32m✅ shoot kubeconfig → /mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MSP/.state/shoot-kubeconfig.yaml[0m
+############ 1. instance namespace + ALL pod states (504 = backend not answering) ############
+NAME                               STATUS   AGE
+aitp-wzw3g7znvmqdk5qf-pocaitrust   Active   59m
+-- pods --
+NAME                                                READY   STATUS        RESTARTS      AGE   IP             NODE                                                    NOMINATED NODE   READINESS GATES
+ai-system-registry-backend-96d4899d5-9dq2k          1/1     Running       0             59m   100.64.9.114   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+ai-system-registry-frontend-5b779b8988-dz5nv        1/1     Running       0             59m   100.64.9.116   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+alerts-backend-77b896b6c5-4r8bm                     1/1     Running       0             59m   100.64.9.122   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+alerts-frontend-787b7f7c49-xqlrq                    1/1     Running       0             59m   100.64.9.124   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+clickhouse-58c77dc94b-f5g8x                         1/1     Running       0             59m   100.64.9.157   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+clickhouse-migrate-pt4xk                            0/1     Completed     0             59m   100.64.9.112   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+compliance-backend-5987788cdd-68vkg                 1/1     Running       0             59m   100.64.9.120   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+compliance-frontend-78f5d6bf-9z7rg                  1/1     Running       0             59m   100.64.9.119   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+db-migrate-srwvw                                    0/1     Completed     0             59m   100.64.9.111   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+decision-trace-analyzer-backend-6745879c56-j42xb    1/1     Running       0             59m   100.64.9.117   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+decision-trace-analyzer-frontend-6ffbdf64df-4fjm7   1/1     Running       0             59m   100.64.9.121   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+keycloak-f6494f684-mzgn6                            1/1     Running       0             59m   100.64.9.151   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+keycloak-provision-lrksb                            0/1     Completed     0             59m   100.64.9.113   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+minio-8fb67488-h9s2q                                1/1     Running       0             59m   100.64.9.143   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+minio-init-5hfrm                                    0/1     Completed     0             59m   100.64.9.115   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+monitoring-backend-6c7fb7ff95-5mskn                 1/1     Running       0             59m   100.64.9.125   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+monitoring-frontend-864dd86b58-g96ll                1/1     Running       0             59m   100.64.9.123   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+oauth2-proxy-5d74474b8b-ghm9l                       1/1     Running       0             8s    100.64.9.197   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+oauth2-proxy-7588d74946-6rfgj                       1/1     Terminating   0             2s    100.64.9.201   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+otel-clickhouse-consumer-969c4cdb6-fk8p4            1/1     Running       5 (58m ago)   59m   100.64.9.130   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+otel-collector-c67797fbc-qqxlc                      1/1     Running       0             59m   100.64.9.126   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+otel-rmq-bridge-5d978ddbbf-lx96b                    1/1     Running       0             59m   100.64.9.132   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+overview-backend-6f68f6df-sd76c                     1/1     Running       0             59m   100.64.9.141   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+overview-frontend-76b64bb59c-4brgl                  1/1     Running       0             59m   100.64.9.139   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+policy-checker-worker-59cb886cf4-bh7qd              1/1     Running       0             59m   100.64.9.144   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+postgres-74bb6fd9c4-kx5fg                           1/1     Running       0             59m   100.64.9.142   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+rabbitmq-77dc5549f7-jzrxh                           1/1     Running       0             59m   100.64.9.147   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+shell-66dc887486-7dg7m                              1/1     Running       0             59m   100.64.9.146   shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v   <none>           <none>
+-- not Running/Completed --
+oauth2-proxy-7588d74946-6rfgj                       1/1   Terminating   0             2s
+
+############ 2. oauth2-proxy + shell (the entry backends the route points to) ############
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS     IMAGES                                     SELECTOR
+oauth2-proxy   1/1     1            1           59m   oauth2-proxy   quay.io/oauth2-proxy/oauth2-proxy:v7.6.0   app=oauth2-proxy
+shell          1/1     1            1           59m   shell          mirceacraciun795/aitrust-shell:aitrust-1   app=shell
+-- oauth2-proxy recent logs --
+[2026/08/12 11:32:48] [proxy.go:89] mapping path "/" => upstream "http://shell:80"
+[2026/08/12 11:32:48] [oauthproxy.go:171] OAuthProxy configured for OpenID Connect Client ID: oauth2-proxy
+[2026/08/12 11:32:48] [oauthproxy.go:177] Cookie settings: name:_oauth2_proxy secure(https):true httponly:true expiry:168h0m0s domains: path:/ samesite: refresh:disabled
+-- oauth2-proxy pod events / restarts --
+oauth2-proxy-5d74474b8b-ghm9l restarts=0 ready=true phase=Running
+
+############ 3. HTTPRoutes for this host — programmed + backendRefs resolve? ############
+-- aitp-wzw3g7znvmqdk5qf-pocaitrust-app --
+parent=terminate-wildstar host=wzw3g7znvmqdk5qf-pocaitrust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu backend=oauth2-proxy:8080 ns=aitp-wzw3g7znvmqdk5qf-pocaitrust
+accepted=True resolved=True
+-- aitp-wzw3g7znvmqdk5qf-pocaitrust-keycloak --
+parent=terminate-wildstar host=wzw3g7znvmqdk5qf-pocaitrust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu backend=keycloak:8080 ns=aitp-wzw3g7znvmqdk5qf-pocaitrust
+accepted=True resolved=True
+-- ReferenceGrant in the instance ns (gateway->svc cross-ns) --
+NAME                        AGE
+allow-mesh-gateway-to-app   59m
+
+############ 4. can we reach oauth2-proxy svc IN-CLUSTER (isolate gateway vs backend)? ############
+oauth2-proxy /ping: http=200
+
+############ 5. external via gateway (the 504 path) ############
+ext https://host/ : http=403 time=0.008792s
+
+############ 6. node the instance is on — is it under pressure / NotReady? ############
+60m
+shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v
+NAME                                                        CPU(cores)   CPU(%)   MEMORY(bytes)   MEMORY(%)   
+shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-fwb6v       2209m        13%      12233Mi         9%          
+shoot--ai-trust--ai-trust-1-msp-at-big-z1-6cc4f-m7zwh       59m          0%       817Mi           0%          
+DONE

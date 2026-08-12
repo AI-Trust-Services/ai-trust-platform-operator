@@ -1,0 +1,12 @@
+==== converge my-aitrust: scale to 2 + set rolling strategy (correct patch types) ====
+deployment.apps/oauth2-proxy patched
+deployment.apps/shell patched
+deployment "oauth2-proxy" successfully rolled out
+deployment "shell" successfully rolled out
+
+==== FINAL: all instances 2/2 + strategy maxUnavailable=0 ====
+  aitp-1fj45gfqhqdlwxjh-poc: oauth2=2/2(mu=0) shell=2/2(mu=0)
+  aitp-33hins0iklcwfg45-testai: oauth2=2/2(mu=0) shell=2/2(mu=0)
+  aitp-q3c0weh7suf5hgjk-my-aitrust: oauth2=2/2(mu=0) shell=2/2(mu=0)
+  aitp-wzw3g7znvmqdk5qf-pocaitrust: oauth2=2/2(mu=0) shell=2/2(mu=0)
+DONE

@@ -1,0 +1,14 @@
+==== give the v8 operator a reconcile cycle to converge all instances (wait 60s) ====
+==== steady-state replica counts (want 2/2 oauth2 + 2/2 shell, no stale 3rd) ====
+  aitp-1fj45gfqhqdlwxjh-poc: oauth2 spec=2 ready=2 | shell spec=2 ready=2 | oauth2-strategy=0
+  aitp-33hins0iklcwfg45-testai: oauth2 spec=2 ready=2 | shell spec=2 ready=2 | oauth2-strategy=0
+  aitp-q3c0weh7suf5hgjk-my-aitrust: oauth2 spec=1 ready=1 | shell spec=1 ready=1 | oauth2-strategy=25%
+  aitp-wzw3g7znvmqdk5qf-pocaitrust: oauth2 spec=2 ready=2 | shell spec=2 ready=2 | oauth2-strategy=0
+     stale: oauth2-proxy-6f7bfcd9bb-p7btk   0/1   Terminating   0     4s
+
+==== LIVE 504 TEST: roll oauth2-proxy on pocaitrust while hammering the URL — expect NO 504 ====
+        1 
+       28 403
+  ^ (counts per HTTP code during a rollout; want NO 502/504)
+error: timed out waiting for the condition
+DONE
