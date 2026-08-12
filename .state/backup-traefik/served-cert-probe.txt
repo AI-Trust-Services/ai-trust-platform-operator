@@ -1,0 +1,17 @@
+probe time: Tue Aug 11 14:52:52 UTC 2026  LB=130.214.18.166
+==================================================================
+### SNI=ai-trust-platform-main.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu  (connect via LB 130.214.18.166:443)
+subject=CN=ai-trust-1-mesh
+issuer=CN=Standard Platform Mesh Local CA
+notBefore=Aug 10 11:19:08 2026 GMT
+notAfter=Nov 12 11:19:08 2028 GMT
+X509v3 Subject Alternative Name: 
+    DNS:ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, DNS:*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, DNS:kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+==================================================================
+### SNI=ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu  (connect via LB 130.214.18.166:443)
+subject=CN=ai-trust-1-mesh
+issuer=CN=Standard Platform Mesh Local CA
+notBefore=Aug 10 11:19:08 2026 GMT
+notAfter=Nov 12 11:19:08 2028 GMT
+X509v3 Subject Alternative Name: 
+    DNS:ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, DNS:*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, DNS:kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu

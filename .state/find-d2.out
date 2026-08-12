@@ -1,0 +1,4 @@
+=== enumerate ALL org workspaces, then all sub-workspaces, hunting every AITrustPlatformInstance ===
+root:orgs:aitrustdemo:tenant => my-aitrust   Ready   https://q3c0weh7suf5hgjk-my-aitrust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+--- which one resolves to host 33hins0iklcwfg45 (the namespace prefix = first 16 chars of the consumer ws cluster id)? that's the CR to delete ---
+DONE

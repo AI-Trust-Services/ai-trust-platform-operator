@@ -1,0 +1,31 @@
+############ Decode the pinned CA from the WAC (subject/issuer/dates) ############
+subject=CN=Standard Platform Mesh Local CA
+issuer=CN=Standard Platform Mesh Local CA
+notBefore=Aug 10 11:19:08 2026 GMT
+notAfter=Nov 12 11:19:08 2028 GMT
+SHA1 Fingerprint=08:53:2F:3B:C9:24:7B:86:64:35:CD:BB:A3:5E:FA:A4:82:7C:9B:2D
+
+############ Currently-served gateway cert secret 'domain-certificate' CA ############
+(no ca.crt in domain-certificate)
+--- tls.crt leaf of domain-certificate ---
+subject=CN=ai-trust-1-mesh
+issuer=CN=Standard Platform Mesh Local CA
+
+############ LE cert secret 'cert-aitrust-full' issuer ############
+subject=CN=ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+issuer=C=US, O=Let's Encrypt, CN=YR2
+
+############ WHO OWNS the WAC objects? iam-service / onboarding ############
+account-operator                      1/1     1            1           42h
+iam-service                           1/1     1            1           42h
+iam-ui                                1/1     1            1           43h
+--- iam-service configmaps/secrets ---
+configmap/iam-service-roles                         1      42h
+secret/account-operator-ca-secret                         kubernetes.io/tls          3      43h
+secret/account-operator-kubeconfig                        Opaque                     1      42h
+secret/account-operator-webhook-server-cert               kubernetes.io/tls          3      43h
+secret/iam-client-secret                                  Opaque                     2      42h
+secret/iam-service-kubeconfig                             Opaque                     1      42h
+secret/sh.helm.release.v1.account-operator.v1             helm.sh/release.v1         1      42h
+secret/sh.helm.release.v1.iam-service.v1                  helm.sh/release.v1         1      42h
+secret/sh.helm.release.v1.iam-ui.v1                       helm.sh/release.v1         1      43h

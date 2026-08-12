@@ -1,0 +1,212 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  annotations:
+    reconcile.fluxcd.io/forceAt: "1786360219"
+    reconcile.fluxcd.io/requestedAt: "1786360219"
+  creationTimestamp: "2026-08-10T11:09:24Z"
+  finalizers:
+  - finalizers.fluxcd.io
+  generation: 3
+  labels:
+    core.platform-mesh.io/operator-created: "true"
+  name: infra
+  namespace: platform-mesh-system
+  resourceVersion: "2457331"
+  uid: 0451147c-5fa1-4311-97a4-632d34269e12
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: infra
+    namespace: platform-mesh-system
+  dependsOn:
+  - name: keycloak-operator
+    namespace: platform-mesh-system
+  - name: cnpg-operator
+    namespace: platform-mesh-system
+  install:
+    remediation:
+      retries: -1
+  interval: 1m
+  releaseName: infra
+  targetNamespace: platform-mesh-system
+  timeout: 15m
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    cnpg:
+      enabled: true
+    cors:
+      enabled: true
+    dex:
+      enabled: true
+      gatewayApi:
+        hostnames:
+        - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+        - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+      issuer: https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/dex
+      staticClient:
+        redirectURIs:
+        - https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak/realms/default/broker/dex/endpoint
+    gatewayApi:
+      enabled: true
+      listeners:
+      - hostname: ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+        name: terminate
+        port: 8443
+        protocol: HTTPS
+        tls:
+          certificateRefs:
+          - group: ""
+            kind: Secret
+            name: domain-certificate
+            namespace: platform-mesh-system
+          mode: Terminate
+      - hostname: '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+        name: terminate-wildstar
+        port: 8443
+        protocol: HTTPS
+        tls:
+          certificateRefs:
+          - group: ""
+            kind: Secret
+            name: domain-certificate
+            namespace: platform-mesh-system
+          mode: Terminate
+      - allowedRoutes:
+          namespaces:
+            from: All
+        name: passthrough
+        port: 8443
+        protocol: TLS
+        tls:
+          mode: Passthrough
+      listenersExtra:
+      - hostname: '*.services.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+        name: terminate-services
+        port: 8443
+        protocol: HTTPS
+        tls:
+          certificateRefs:
+          - group: ""
+            kind: Secret
+            name: domain-certificate
+            namespace: platform-mesh-system
+          mode: Terminate
+    hostAliases:
+      enabled: true
+      entries:
+      - hostnames:
+        - localhost
+        - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+        - kcp.localhost
+        - root.kcp.localhost
+        - kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+        - nereus.kcp.localhost
+        - triton.kcp.localhost
+        ip: 100.104.188.4
+    kcp:
+      auth:
+        serviceAccount:
+          enabled: true
+      external:
+        hostname: kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+      frontProxy:
+        clusterIP: 10.96.0.100
+        port: 8443
+      image:
+        tag: v0.32.2
+      rootShard:
+        extraArgs:
+        - --feature-gates=WorkspaceAuthentication=true,CacheAPIs=true
+      shards: []
+      webhook:
+        enabled: true
+    keycloak:
+      gatewayApi:
+        hostnames:
+        - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+        - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+      keycloakConfig:
+        url: http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak
+      operator:
+        caSecret: domain-certificate-ca
+        enabled: true
+        health:
+          liveness:
+            failureThreshold: 3
+            path: /keycloak/health/live
+          periodSeconds: 10
+          port: 9000
+          readiness:
+            initialDelaySeconds: 0
+            path: /keycloak/health/ready
+            periodSeconds: 10
+          startup:
+            failureThreshold: 600
+            path: /keycloak/health
+        hostname: https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak/
+      service:
+        name: keycloak-service
+        port: 8080
+    traefik:
+      accessControlAllowOriginList:
+      - http://localhost:4200
+      - http://localhost:4300
+      - http://*.localhost:4200
+      - http://*.localhost:4300
+      - http://sub.localhost:4300
+      - https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+      - https://*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+status:
+  conditions:
+  - lastTransitionTime: "2026-08-10T12:19:14Z"
+    message: Helm upgrade succeeded for release platform-mesh-system/infra.v3 with
+      chart infra@0.34.0+63e8ca2f1f29
+    observedGeneration: 3
+    reason: UpgradeSucceeded
+    status: "True"
+    type: Ready
+  - lastTransitionTime: "2026-08-10T12:19:14Z"
+    message: Helm upgrade succeeded for release platform-mesh-system/infra.v3 with
+      chart infra@0.34.0+63e8ca2f1f29
+    observedGeneration: 3
+    reason: UpgradeSucceeded
+    status: "True"
+    type: Released
+  history:
+  - appVersion: 0.0.0
+    chartName: infra
+    chartVersion: 0.34.0+63e8ca2f1f29
+    configDigest: sha256:4f9399c9989e1b1e166343fbd7af087cb768c703d7d89ca56b3b228fdc26cfbb
+    digest: sha256:de79d35e35c9212b8297e0a8658cdefefe4c74f0e54f48496439cd667540cd46
+    firstDeployed: "2026-08-10T11:10:26Z"
+    lastDeployed: "2026-08-10T12:19:12Z"
+    name: infra
+    namespace: platform-mesh-system
+    ociDigest: sha256:63e8ca2f1f29f6cc21cdddaa6e5970eb281ac9cae86e0a820ebc1b532dc814b6
+    status: deployed
+    version: 3
+  - appVersion: 0.0.0
+    chartName: infra
+    chartVersion: 0.34.0+63e8ca2f1f29
+    configDigest: sha256:0cdd41234bbb7611b31dede6484b8a2431aefd2f35e7f5099bc0a34f0b7a8bad
+    digest: sha256:c42155dfd811c5d6afba50b3a9124b7ef9b944bea20bdbdfc79bc297358c2944
+    firstDeployed: "2026-08-10T11:10:26Z"
+    lastDeployed: "2026-08-10T11:38:03Z"
+    name: infra
+    namespace: platform-mesh-system
+    ociDigest: sha256:63e8ca2f1f29f6cc21cdddaa6e5970eb281ac9cae86e0a820ebc1b532dc814b6
+    status: superseded
+    version: 2
+  lastAttemptedConfigDigest: sha256:4f9399c9989e1b1e166343fbd7af087cb768c703d7d89ca56b3b228fdc26cfbb
+  lastAttemptedGeneration: 3
+  lastAttemptedReleaseAction: upgrade
+  lastAttemptedReleaseActionDuration: 1.904769783s
+  lastAttemptedRevision: 0.34.0+63e8ca2f1f29
+  lastAttemptedRevisionDigest: sha256:63e8ca2f1f29f6cc21cdddaa6e5970eb281ac9cae86e0a820ebc1b532dc814b6
+  lastHandledForceAt: "1786360219"
+  lastHandledReconcileAt: "1786360219"
+  observedGeneration: 3
+  storageNamespace: platform-mesh-system

@@ -1,0 +1,51 @@
+############ frontproxy-config CM — the authentication config (OIDC issuer + CA trust) ############
+{"path-mapping.yaml":"- backend: https://root.kcp.localhost:8443/\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /clusters/\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n- backend: https://root.kcp.localhost:8443/\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /services/\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n- backend: https://virtual-workspaces.platform-mesh-system:8443\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /services/contentconfigurations\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n- backend: https://virtual-workspaces.platform-mesh-system:8443\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /services/marketplace\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n"}
+---- (raw keys) ----
+{"path-mapping.yaml":"- backend: https://root.kcp.localhost:8443/\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /clusters/\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n- backend: https://root.kcp.localhost:8443/\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /services/\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n- backend: https://virtual-workspaces.platform-mesh-system:8443\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /services/contentconfigurations\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n- backend: https://virtual-workspaces.platform-mesh-system:8443\n  backend_server_ca: /etc/kcp/tls/ca/tls.crt\n  path: /services/marketplace\n  proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt\n  proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key\n"}
+
+############ full data dump of frontproxy-config ############
+apiVersion: v1
+data:
+  path-mapping.yaml: |
+    - backend: https://root.kcp.localhost:8443/
+      backend_server_ca: /etc/kcp/tls/ca/tls.crt
+      path: /clusters/
+      proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt
+      proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key
+    - backend: https://root.kcp.localhost:8443/
+      backend_server_ca: /etc/kcp/tls/ca/tls.crt
+      path: /services/
+      proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt
+      proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key
+    - backend: https://virtual-workspaces.platform-mesh-system:8443
+      backend_server_ca: /etc/kcp/tls/ca/tls.crt
+      path: /services/contentconfigurations
+      proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt
+      proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key
+    - backend: https://virtual-workspaces.platform-mesh-system:8443
+      backend_server_ca: /etc/kcp/tls/ca/tls.crt
+      path: /services/marketplace
+      proxy_client_cert: /etc/kcp-front-proxy/requestheader-client/tls.crt
+      proxy_client_key: /etc/kcp-front-proxy/requestheader-client/tls.key
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2026-08-10T11:10:52Z"
+  labels:
+    app.kubernetes.io/component: front-proxy
+    app.kubernetes.io/instance: frontproxy
+    app.kubernetes.io/managed-by: kcp-operator
+    app.kubernetes.io/name: kcp
+  name: frontproxy-config
+  namespace: platform-mesh-system
+  ownerReferences:
+  - apiVersion: operator.kcp.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: FrontProxy
+    name: frontproxy
+    uid: d12ff672-b072-4eaf-97c0-cbc35edf8bad
+  resourceVersion: "89353"
+  uid: ba84961c-a9cd-459a-abba-09d2628d96e0
+
+############ does the OIDC config point at the apex host + a CA file? grep the rendered config ############
+DONE

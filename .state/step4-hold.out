@@ -1,0 +1,13 @@
+############ HOLD THROUGH FLUX RECONCILE (~2.5 min) — did anything revert the served cert or WACs? ############
+== t0 ==
+issuer=C=US, O=Let's Encrypt, CN=YR2
+== t+150s: served cert issuer (must still be Let's Encrypt) ==
+issuer=C=US, O=Let's Encrypt, CN=YR2
+subject=CN=ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+== t+150s: served per-SNI (apex + testai) ==
+ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu http=200 tls_ok
+testai.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu http=403 tls_ok
+== t+150s: WAC still has 5-cert bundle (not reverted by account-operator)? ==
+  root/orgs-authentication certs: 5
+  root:orgs reachable: 8
+HOLD_DONE

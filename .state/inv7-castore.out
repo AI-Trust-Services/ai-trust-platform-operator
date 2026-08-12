@@ -1,0 +1,26 @@
+############ domain-certificate-ca secret: decode (this is the mesh CA the WAC pins) ############
+--- key: tls.crt ---
+subject=CN=Standard Platform Mesh Local CA
+issuer=CN=Standard Platform Mesh Local CA
+SHA1 Fingerprint=08:53:2F:3B:C9:24:7B:86:64:35:CD:BB:A3:5E:FA:A4:82:7C:9B:2D
+(WAC pinned CA SHA1 was 08:53:2F:3B:C9:24:7B:86:64:35:CD:BB:A3:5E:FA:A4:82:7C:9B:2D)
+
+############ account-operator full env (looking for a CA/issuer value it stamps into WAC) ############
+ENV KUBECONFIG=/api-kubeconfig/kubeconfig
+
+############ account-operator config configmaps ############
+
+############ infra HR: find the block that templates WorkspaceAuthenticationConfiguration / orgs-authentication ############
+      rootShard:
+        extraArgs:
+        - --feature-gates=WorkspaceAuthentication=true,CacheAPIs=true
+      shards: []
+      webhook:
+        enabled: true
+    keycloak:
+      gatewayApi:
+        hostnames:
+
+############ Is orgs-authentication (root WAC) helm/flux-owned or hand-applied? check ownerRefs/annotations via kcp ############
+{"kcp.io/cluster":"root"}
+

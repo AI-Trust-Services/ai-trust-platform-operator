@@ -1,0 +1,32 @@
+KCP_HOST=kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+
+############ API resources containing 'authentication' at root ############
+selfsubjectreviews                                   authentication.k8s.io/v1          false        SelfSubjectReview
+tokenreviews                                         authentication.k8s.io/v1          false        TokenReview
+localsubjectaccessreviews                            authorization.k8s.io/v1           true         LocalSubjectAccessReview
+selfsubjectaccessreviews                             authorization.k8s.io/v1           false        SelfSubjectAccessReview
+selfsubjectrulesreviews                              authorization.k8s.io/v1           false        SelfSubjectRulesReview
+subjectaccessreviews                                 authorization.k8s.io/v1           false        SubjectAccessReview
+clusterrolebindings                                  rbac.authorization.k8s.io/v1      false        ClusterRoleBinding
+clusterroles                                         rbac.authorization.k8s.io/v1      false        ClusterRole
+rolebindings                                         rbac.authorization.k8s.io/v1      true         RoleBinding
+roles                                                rbac.authorization.k8s.io/v1      true         Role
+workspaceauthenticationconfigurations                tenancy.kcp.io/v1alpha1           false        WorkspaceAuthenticationConfiguration
+
+############ orgs workspaces ############
+NAME           TYPE               REGION   PHASE   URL                                                                                                                   AGE
+aitrustdemo    aitrustdemo-org             Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:aitrustdemo    24h
+aitrustfresh   aitrustfresh-org            Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:aitrustfresh   20h
+aitrustg2      aitrustg2-org               Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:aitrustg2      20h
+demo           demo-org                    Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:demo           39h
+mirceatest     mirceatest-org              Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:mirceatest     41h
+mirceatest2    mirceatest2-org             Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:mirceatest2    38h
+mirceatest3    mirceatest3-org             Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:mirceatest3    22h
+poc            poc-org                     Ready   https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443/clusters/root:orgs:poc            15m
+
+############ Look for WorkspaceAuthenticationConfiguration-like types ############
+logicalclusters                                      core.kcp.io/v1alpha1              false        LogicalCluster
+shards                                               core.kcp.io/v1alpha1              false        Shard
+workspaceauthenticationconfigurations                tenancy.kcp.io/v1alpha1           false        WorkspaceAuthenticationConfiguration
+workspaces                              ws           tenancy.kcp.io/v1alpha1           false        Workspace
+workspacetypes                                       tenancy.kcp.io/v1alpha1           false        WorkspaceType

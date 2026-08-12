@@ -1,0 +1,70 @@
+{
+  "name": "aitrustplatform",
+  "luigiConfigFragment": {
+    "data": {
+      "nodes": [
+        {
+          "pathSegment": "aitrust_platform_instances",
+          "navigationContext": "aitrust_platform_instances",
+          "label": "Platform Instances",
+          "icon": "shield",
+          "entityType": "main.core_platform-mesh_io_account.namespace",
+          "category": { "label": "AI Trust Platform", "icon": "shield", "collapsible": true, "order": 810 },
+          "url": "/assets/platform-mesh-portal-ui-wc.js#generic-list-view",
+          "webcomponent": { "selfRegistered": true },
+          "keepSelectedForChildren": true,
+          "context": {
+            "resourceDefinition": {
+              "group": "trust.aitrust.msp",
+              "version": "v1alpha1",
+              "plural": "AITrustPlatformInstances",
+              "singular": "aitrustplatforminstance",
+              "kind": "AITrustPlatformInstance",
+              "scope": "Namespaced",
+              "namespace": null,
+              "ui": {
+                "logoUrl": "https://cdn.jsdelivr.net/gh/ifdotpy/db@master/ai-128.png",
+                "createView": {
+                  "fields": [
+                    { "label": "Name", "property": "metadata.name", "required": true },
+                    { "label": "Display Name", "property": "spec.displayName", "required": true },
+                    { "label": "Hostname (optional)", "property": "spec.hostname" },
+                    { "label": "Size", "property": "spec.sizeClass", "required": true, "values": ["small", "standard", "large"], "defaultValue": "standard" },
+                    { "label": "Admin Email", "property": "spec.adminEmail" }
+                  ]
+                },
+                "listView": {
+                  "fields": [
+                    { "label": "Name", "property": "metadata.name" },
+                    { "label": "Display Name", "property": "spec.displayName" },
+                    { "label": "URL", "property": "status.url" },
+                    { "label": "Phase", "labelDisplay": true, "property": "status.phase" },
+                    { "label": "Ready", "labelDisplay": true, "property": "status.ready" }
+                  ]
+                }
+              }
+            }
+          },
+          "children": [
+            {
+              "pathSegment": ":instanceId",
+              "hideFromNav": true,
+              "context": { "instanceId": ":instanceId" },
+              "defineEntity": {
+                "id": "aitrust_platform_instance",
+                "contextKey": "instanceId",
+                "graphqlEntity": {
+                  "group": "trust.aitrust.msp",
+                  "kind": "AITrustPlatformInstance",
+                  "query": "{ metadata { name } }",
+                  "version": "v1alpha1"
+                }
+              },
+              "keepSelectedForChildren": false
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

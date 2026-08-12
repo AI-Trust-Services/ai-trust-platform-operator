@@ -1,0 +1,27 @@
+############ 1. BROWSER-SIDE: served cert per host is now LE + validates against PUBLIC trust (no -k) ############
+--- ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu ---
+http=200 tls_verify_ok
+issuer=C=US, O=Let's Encrypt, CN=YR2
+--- testai.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu ---
+http=403 tls_verify_ok
+issuer=C=US, O=Let's Encrypt, CN=YR2
+--- poc.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu ---
+http=403 tls_verify_ok
+issuer=C=US, O=Let's Encrypt, CN=YR2
+--- q3c0weh7suf5hgjk-my-aitrust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu ---
+http=403 tls_verify_ok
+issuer=C=US, O=Let's Encrypt, CN=YR2
+
+############ 2. does the public trust store accept it? (curl WITHOUT -k must succeed = 200/302/403, not cert error) ############
+apex /keycloak/realms/master (no -k): http=200
+
+############ 3. PLATFORM AUTH still healthy? (the last-time breakage) ############
+  root:orgs workspaces reachable: 8
+  -- shard oidc/x509 errors since swap (expect none) --
+  (empty = healthy)
+
+############ 4. instances still Ready ############
+NAMESPACE          NAME     URL                                                                             READY   PHASE   AGE
+1fj45gfqhqdlwxjh   poc      https://poc.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu      true    Ready   24m
+33hins0iklcwfg45   testai   https://testai.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu   true    Ready   17h
+STEP4_DONE

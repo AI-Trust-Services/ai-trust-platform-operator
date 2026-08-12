@@ -1,0 +1,3 @@
+=== deep 3-level workspace walk: list EVERY AITrustPlatformInstance + its home workspace ===
+root:orgs:aitrustdemo:tenant  :: aitrustplatforminstance.trust.ai-trust.msp/my-aitrust
+DONE

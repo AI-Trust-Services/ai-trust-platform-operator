@@ -1,0 +1,12 @@
+{
+	"data": {
+		"__type": {
+			"fields": [
+				{
+					"args": [],
+					"name": "v1alpha1"
+				}
+			]
+		}
+	}
+}

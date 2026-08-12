@@ -1,0 +1,64 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            14:82:6f:e4:ce:11:60:23:99:bd:93:50:08:e7:97:37:93:ec:f4:31
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: CN=Standard Platform Mesh Local CA
+        Validity
+            Not Before: Aug 10 11:19:08 2026 GMT
+            Not After : Nov 12 11:19:08 2028 GMT
+        Subject: CN=ai-trust-1-mesh
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c5:33:30:41:82:f4:6c:78:cf:84:97:38:8b:9e:
+                    6b:23:38:c7:5a:2a:1a:4c:d5:48:90:7d:07:59:3d:
+                    f5:2a:5f:0b:42:1a:a7:fe:4b:dc:b4:c5:25:9a:5a:
+                    97:20:33:09:a0:41:9f:fd:ac:57:d2:96:d9:b8:d3:
+                    cf:98:92:0c:1f:f6:af:dd:c5:50:a0:0e:2f:de:79:
+                    96:08:f1:c6:cd:1d:64:a9:ae:5a:92:3d:ca:34:f9:
+                    0d:f1:42:bd:05:54:29:ad:bf:fe:0c:be:8e:a6:35:
+                    1d:6a:42:88:83:a3:70:1c:b1:3f:e0:96:0d:f4:37:
+                    db:28:47:0e:e4:d9:22:45:16:64:cf:39:fc:c8:0a:
+                    f0:e2:07:78:f3:cc:05:c1:52:7e:9f:18:f5:fd:94:
+                    65:6c:47:e6:43:6b:5e:1f:a8:dd:5e:1a:9b:d0:b4:
+                    96:35:17:85:63:14:40:e0:7e:35:c9:c0:4b:6c:83:
+                    2e:5f:27:78:6c:21:c9:2f:4e:b1:ae:67:92:7a:2c:
+                    df:e7:b4:58:98:87:c4:33:e2:7b:b5:88:8d:8c:9c:
+                    ee:65:15:0b:35:cf:3c:78:06:c6:8d:c9:4a:a7:5d:
+                    4a:cc:19:dc:67:19:a9:6e:af:69:5a:08:36:94:c1:
+                    bd:60:88:68:93:6c:c9:2f:45:8c:e9:a6:18:e8:04:
+                    81:85
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Alternative Name: 
+                DNS:ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, DNS:*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, DNS:kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Key Usage: 
+                Digital Signature, Key Encipherment
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication
+            X509v3 Subject Key Identifier: 
+                AB:02:60:64:82:7E:53:76:0B:60:59:B6:69:9A:29:71:B0:75:A8:3C
+            X509v3 Authority Key Identifier: 
+                5B:0D:EC:B4:AD:03:9D:42:BB:62:A9:A6:48:7A:0D:57:46:F9:81:50
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        a6:da:30:e0:6b:67:b4:24:89:34:71:eb:25:2e:91:9e:ad:e3:
+        af:33:4f:91:70:25:1f:62:43:f3:c9:e9:db:d5:be:ef:01:ca:
+        16:33:49:d8:68:bc:21:65:58:0a:03:4b:cd:0e:43:4b:51:96:
+        9a:3a:97:a5:b0:9b:a9:f2:18:74:ab:cd:8f:cb:e4:85:dd:45:
+        d1:6f:b1:fd:45:5a:3e:0f:32:5d:55:a3:ca:3a:2f:01:a3:1c:
+        80:97:9e:4d:14:bd:e2:22:4d:82:43:26:f9:f9:92:2a:3b:8c:
+        dc:cc:df:ac:5c:e1:1b:f2:48:08:24:47:21:1b:0d:e9:c4:e8:
+        5e:9e:7b:c8:17:58:f9:9f:18:a3:1c:d8:8d:fd:4b:9b:27:3c:
+        42:19:e6:a5:7a:e8:d4:04:cf:fd:d7:37:eb:9b:ba:bc:c6:8b:
+        19:70:0f:39:7e:06:4b:88:be:2b:9d:28:25:75:f3:39:2d:8a:
+        03:a6:e4:dc:96:9d:9d:04:ea:ba:ed:f2:ce:38:55:7b:1a:62:
+        a5:27:d6:ad:fb:2f:be:9e:52:17:19:7d:e3:84:2c:b0:11:b4:
+        0d:06:55:85:c7:50:f7:0b:a6:d7:22:83:f5:c0:0a:79:ae:2d:
+        a8:c4:7e:ba:45:1a:64:52:73:e4:dc:99:c5:5b:ec:a0:ae:50:
+        c5:88:a0:c0

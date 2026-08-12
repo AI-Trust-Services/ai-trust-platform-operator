@@ -1,0 +1,43 @@
+############ 1. account-operator deploy: args/env/mounts — where does it read the WAC CA from? ############
+deploy: deployment.apps/account-operator
+ARGS=["operator","--leader-elect","--metrics-bind-address=:9090","--health-probe-bind-address=:8090","--log-level=debug","--no-json","--region=local","--environment=local","--image-tag=v0.15.4","--image-name=\"ghcr.io/platform-mesh/platform-mesh/account-operator\"","--shutdown-timeout=1m","--max-concurrent-reconciles=10","--subroutines-workspace-type-enabled=true","--subroutines-workspace-enabled=true","--subroutines-workspace-ready-enabled=true","--subroutines-account-info-enabled=true","--controllers-account-info-enabled=true","--kcp-api-export-endpoint-slice-name=core.platform-mesh.io","--webhooks-enabled","--webhooks-cert-dir=/certs","--webhooks-deny-list=admin,root,system,www","--webhooks-additional-account-types=account"]
+-- volumes/mounts --
+external-api-server secret=account-operator-kubeconfig cm=
+cert secret=account-operator-webhook-server-cert cm=
+
+############ 2. account-operator HelmRelease values (the durable knob) ############
+"entries":[{"hostnames":["localhost"
+"ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu"
+"kcp.localhost"
+"root.kcp.localhost"
+"kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu"
+"nereus.kcp.localhost"
+"triton.kcp.localhost"]
+"subroutines":{"fga":{"grpcAddr":"openfga:8081"}}
+"tracing":{"collector":{"host":"observability-opentelemetry-collector.observability.svc.cluster.local:4317"}
+-- list all helmreleases to find the right one --
+NAME                         AGE   READY   STATUS
+account-operator             43h   True    Helm install succeeded for release platform-mesh-system/account-operator.v1 with chart account-operator@0.16.5+f12769335e50
+cert-manager                 43h   True    Helm upgrade succeeded for release default/cert-manager.v2 with chart cert-manager@1.20.1+98a9dd1a3ffa
+cnpg-operator                43h   True    Helm install succeeded for release platform-mesh-system/cnpg-operator.v1 with chart cloudnative-pg@0.28.0+d216a2b1e3c1
+etcd-druid                   43h   True    Helm install succeeded for release etcd-druid-system/etcd-druid.v1 with chart etcd-druid@0.36.4+63743ad549bd
+extension-manager-operator   43h   True    Helm install succeeded for release platform-mesh-system/extension-manager-operator.v1 with chart extension-manager-operator@0.38.8+29712a7acb7d
+iam-service                  43h   True    Helm install succeeded for release platform-mesh-system/iam-service.v1 with chart iam-service@0.17.9+ad966624bc23
+iam-ui                       43h   True    Helm install succeeded for release platform-mesh-system/iam-ui.v1 with chart iam-ui@0.8.2+13ffca4dc357
+infra                        43h   True    Helm upgrade succeeded for release platform-mesh-system/infra.v3 with chart infra@0.34.0+63e8ca2f1f29
+init-agent                   43h   True    Helm install succeeded for release platform-mesh-system/init-agent.v1 with chart init-agent@0.2.0+5e5dfb27ff6e
+kcp-operator                 43h   True    Helm upgrade succeeded for release kcp-operator/kcp-operator.v2 with chart kcp-operator@0.7.4+cdb8e49c375b
+keycloak-operator            43h   True    Helm install succeeded for release platform-mesh-system/keycloak-operator.v1 with chart keycloak-operator@0.3.0+1f38d791720d
+kubernetes-graphql-gateway   43h   True    Helm install succeeded for release platform-mesh-system/kubernetes-graphql-gateway.v1 with chart kubernetes-graphql-gateway@0.44.3+28c9bd24280d
+marketplace-ui               43h   True    Helm install succeeded for release platform-mesh-system/marketplace-ui.v1 with chart marketplace-ui@0.8.0+09e1e8a756a1
+observability                43h   True    Helm install succeeded for release observability/observability.v1 with chart observability@0.4.0+66f1934592e9
+openfga                      43h   True    Helm upgrade succeeded for release platform-mesh-system/openfga.v2 with chart openfga@0.2.62+2f2ee01ba2ae
+opentelemetry-operator       43h   True    Helm upgrade succeeded for release observability/opentelemetry-operator.v2 with chart opentelemetry-operator@0.114.1+31e45d1c475d
+platform-mesh-operator       43h   True    Helm install succeeded for release platform-mesh-system/platform-mesh-operator.v1 with chart platform-mesh-operator@0.35.0+0b5bf27e8fd7
+portal                       43h   True    Helm upgrade succeeded for release platform-mesh-system/portal.v2 with chart portal@0.14.5+3c85db54d184
+prometheus-operator-crds     43h   True    Helm upgrade succeeded for release observability/prometheus-operator-crds.v2 with chart prometheus-operator-crds@29.0.0+f922fc571168
+
+############ 3. does the account-operator read domain-certificate-ca (which we already updated)? ############
+
+############ 4. HOW is the WAC CA templated? Check a config/template the operator uses ############
+DONE

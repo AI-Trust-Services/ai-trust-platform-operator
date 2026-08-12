@@ -1,0 +1,77 @@
+############ root-kcp pod: container args ############
+CONTAINER=kcp
+  ARG=--root-ca-file=/etc/kcp/tls/ca/root/tls.crt
+  ARG=--client-ca-file=/etc/kcp/tls/ca/client/tls.crt
+  ARG=--requestheader-client-ca-file=/etc/kcp/tls/ca/requestheader-client/tls.crt
+  ARG=--requestheader-allowed-names=kcp-front-proxy,kcp-root-shard-proxy
+  ARG=--requestheader-username-headers=X-Remote-User
+  ARG=--requestheader-group-headers=X-Remote-Group
+  ARG=--requestheader-extra-headers-prefix=X-Remote-Extra-
+  ARG=--tls-private-key-file=/etc/kcp/tls/server/tls.key
+  ARG=--tls-cert-file=/etc/kcp/tls/server/tls.crt
+  ARG=--service-account-key-file=/etc/kcp/tls/service-account/tls.crt
+  ARG=--service-account-private-key-file=/etc/kcp/tls/service-account/tls.key
+  ARG=--service-account-lookup=false
+  ARG=--shard-client-key-file=/etc/kcp/tls/client/tls.key
+  ARG=--shard-client-cert-file=/etc/kcp/tls/client/tls.crt
+  ARG=--shard-base-url=https://root.kcp.localhost:8443/
+  ARG=--shard-external-url=https://kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu:8443
+  ARG=--logical-cluster-admin-kubeconfig=/etc/kcp/logical-cluster-admin-kubeconfig/kubeconfig
+  ARG=--external-logical-cluster-admin-kubeconfig=/etc/kcp/external-logical-cluster-admin-kubeconfig/kubeconfig
+  ARG=--batteries-included=workspace-types
+  ARG=--root-directory=
+  ARG=--enable-leader-election=true
+  ARG=--logging-format=json
+  ARG=--feature-gates=WorkspaceAuthentication=true,CacheAPIs=true
+  ARG=--cache-kubeconfig=/etc/cache-server/kubeconfig/kubeconfig
+  ARG=--etcd-servers=http://etcd-kcp-client.platform-mesh-system.svc.cluster.local:2379
+  ARG=--authorization-webhook-version=v1
+  ARG=--authorization-webhook-config-file=/etc/kcp/authorization/webhook/kubeconfig
+  ARG=--service-account-lookup=false
+  ARG=--service-account-key-file=/etc/kcp/tls/root/service-account/tls.crt
+
+############ root-kcp pod: volumeMounts ############
+MOUNT=kcp-ca -> /etc/kcp/tls/ca/root (ro=true)
+MOUNT=logical-cluster-admin-kubeconfig -> /etc/kcp/logical-cluster-admin-kubeconfig (ro=true)
+MOUNT=external-logical-cluster-admin-kubeconfig -> /etc/kcp/external-logical-cluster-admin-kubeconfig (ro=true)
+MOUNT=server-ca -> /etc/kcp/tls/ca/server (ro=true)
+MOUNT=service-account-ca -> /etc/kcp/tls/ca/service-account (ro=true)
+MOUNT=requestheader-client-ca -> /etc/kcp/tls/ca/requestheader-client (ro=true)
+MOUNT=client-ca -> /etc/kcp/tls/ca/client (ro=true)
+MOUNT=server-cert -> /etc/kcp/tls/server (ro=true)
+MOUNT=service-account-cert -> /etc/kcp/tls/service-account (ro=true)
+MOUNT=client-cert -> /etc/kcp/tls/client (ro=true)
+MOUNT=logical-cluster-admin-cert -> /etc/kcp/tls/logical-cluster-admin (ro=true)
+MOUNT=external-logical-cluster-admin-cert -> /etc/kcp/tls/external-logical-cluster-admin (ro=true)
+MOUNT=cache-server-kubeconfig -> /etc/cache-server/kubeconfig (ro=true)
+MOUNT=cache-server-ca -> /etc/cache-server/tls/ca/root (ro=true)
+MOUNT=cache-server-client-cert -> /etc/cache-server/tls/client-certificate (ro=true)
+MOUNT=authorization-webhook-config -> /etc/kcp/authorization/webhook (ro=true)
+MOUNT=root-service-account -> /etc/kcp/tls/root/service-account (ro=true)
+MOUNT=kube-api-access-jnsqx -> /var/run/secrets/kubernetes.io/serviceaccount (ro=true)
+
+############ root-kcp pod: volumes (secrets/configmaps) ############
+VOL=kcp-ca secret=root-ca cm= proj=
+VOL=logical-cluster-admin-kubeconfig secret=root-logical-cluster-admin-kubeconfig cm= proj=
+VOL=external-logical-cluster-admin-kubeconfig secret=root-external-logical-cluster-admin-kubeconfig cm= proj=
+VOL=server-ca secret=root-server-ca cm= proj=
+VOL=service-account-ca secret=root-service-account-ca cm= proj=
+VOL=requestheader-client-ca secret=root-requestheader-client-ca cm= proj=
+VOL=client-ca secret=root-client-ca cm= proj=
+VOL=server-cert secret=root-server cm= proj=
+VOL=service-account-cert secret=root-service-account cm= proj=
+VOL=client-cert secret=root-client cm= proj=
+VOL=logical-cluster-admin-cert secret=root-logical-cluster-admin cm= proj=
+VOL=external-logical-cluster-admin-cert secret=root-external-logical-cluster-admin cm= proj=
+VOL=cache-server-kubeconfig secret=cache-server-kubeconfig cm= proj=
+VOL=cache-server-ca secret=cache-server-ca cm= proj=
+VOL=cache-server-client-cert secret=cache-server-client-certificate cm= proj=
+VOL=authorization-webhook-config secret=kcp-webhook-secret cm= proj=
+VOL=root-service-account secret=root-service-account cm= proj=
+VOL=kube-api-access-jnsqx secret= cm= proj=[{"serviceAccountToken":{"expirationSeconds":3607,"path":"token"}},{"configMap":{"items":[{"key":"ca.crt","path":"ca.crt"}],"name":"kube-root-ca.crt"}},{"downwardAPI":{"items":[{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"},"path":"namespace"}]}}]
+
+############ root-kcp pod: env with oidc/auth/ca ############
+    - --root-ca-file=/etc/kcp/tls/ca/root/tls.crt
+    - --client-ca-file=/etc/kcp/tls/ca/client/tls.crt
+    - --requestheader-client-ca-file=/etc/kcp/tls/ca/requestheader-client/tls.crt
+    - --feature-gates=WorkspaceAuthentication=true,CacheAPIs=true

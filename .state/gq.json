@@ -1,0 +1,146 @@
+{
+	"data": {
+		"__schema": {
+			"mutationType": {
+				"fields": [
+					{
+						"name": "admissionregistration_k8s_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "AdmissionregistrationK8sIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "apis_kcp_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "ApisKcpIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "applyYaml",
+						"type": {
+							"kind": "SCALAR",
+							"name": "JSONString",
+							"ofType": null
+						}
+					},
+					{
+						"name": "authentication_k8s_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "AuthenticationK8sIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "authorization_k8s_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "AuthorizationK8sIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "cache_kcp_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "CacheKcpIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "certificates_k8s_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "CertificatesK8sIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "coordination_k8s_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "CoordinationK8sIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "core_kcp_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "CoreKcpIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "core_platform_mesh_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "CorePlatformMeshIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "events_k8s_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "EventsK8sIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "rbac_authorization_k8s_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "RbacAuthorizationK8sIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "tenancy_kcp_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "TenancyKcpIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "topology_kcp_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "TopologyKcpIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "trust_ai_trust_msp",
+						"type": {
+							"kind": "OBJECT",
+							"name": "TrustAiTrustMspMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "ui_platform_mesh_io",
+						"type": {
+							"kind": "OBJECT",
+							"name": "UiPlatformMeshIoMutation",
+							"ofType": null
+						}
+					},
+					{
+						"name": "v1",
+						"type": {
+							"kind": "OBJECT",
+							"name": "V1Mutation",
+							"ofType": null
+						}
+					}
+				]
+			}
+		}
+	}
+}

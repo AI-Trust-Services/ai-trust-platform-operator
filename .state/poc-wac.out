@@ -1,0 +1,13 @@
+===== poc WAC (freshest org, 33m) cert count + issuer + subjects =====
+https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak/realms/poc
+
+--- cert count in poc WAC certificateAuthority ---
+5
+
+--- subjects of certs in poc WAC ---
+
+===== creationTimestamp of poc WAC =====
+2026-08-12T06:26:05Z
+
+===== compare: mirceatest3 (22h, pre-change stamp) cert count =====
+5

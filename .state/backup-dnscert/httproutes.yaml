@@ -1,0 +1,951 @@
+apiVersion: v1
+items:
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"gateway.networking.k8s.io/v1","kind":"HTTPRoute","metadata":{"annotations":{},"name":"ai-trust-app","namespace":"platform-mesh-system"},"spec":{"hostnames":["ai-trust-platform-main.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu"],"parentRefs":[{"name":"k8sapi-gateway","namespace":"platform-mesh-system","sectionName":"terminate-aitrust"}],"rules":[{"backendRefs":[{"group":"","kind":"Service","name":"oauth2-proxy","namespace":"ai-trust-app","port":8080}]}]}}
+    creationTimestamp: "2026-08-10T14:05:04Z"
+    generation: 1
+    name: ai-trust-app
+    namespace: platform-mesh-system
+    resourceVersion: "265778"
+    uid: 4bbc40e8-c579-4197-bcc2-7c90aba9ac4f
+  spec:
+    hostnames:
+    - ai-trust-platform-main.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-aitrust
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: oauth2-proxy
+        namespace: ai-trust-app
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T14:05:04Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T14:05:04Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-aitrust
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"gateway.networking.k8s.io/v1","kind":"HTTPRoute","metadata":{"annotations":{},"name":"ai-trust-keycloak","namespace":"platform-mesh-system"},"spec":{"hostnames":["ai-trust-platform-main.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu"],"parentRefs":[{"name":"k8sapi-gateway","namespace":"platform-mesh-system","sectionName":"terminate-aitrust"}],"rules":[{"backendRefs":[{"group":"","kind":"Service","name":"keycloak","namespace":"ai-trust-app","port":8080}],"matches":[{"path":{"type":"PathPrefix","value":"/keycloak"}}]}]}}
+    creationTimestamp: "2026-08-10T14:05:04Z"
+    generation: 1
+    name: ai-trust-keycloak
+    namespace: platform-mesh-system
+    resourceVersion: "265779"
+    uid: b1de1788-7f21-412d-9da5-245634240097
+  spec:
+    hostnames:
+    - ai-trust-platform-main.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-aitrust
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: keycloak
+        namespace: ai-trust-app
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /keycloak
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T14:05:04Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T14:05:04Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-aitrust
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T12:10:38Z"
+    generation: 1
+    name: aitp-25veqwflh7syq7fm-d-app
+    namespace: platform-mesh-system
+    resourceVersion: "2030214"
+    uid: 4913d2eb-be8b-44cc-94c7-abf4d6874bef
+  spec:
+    hostnames:
+    - 25veqwflh7syq7fm-d.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: oauth2-proxy
+        namespace: aitp-25veqwflh7syq7fm-d
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T12:10:38Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T12:10:38Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T12:10:38Z"
+    generation: 1
+    name: aitp-25veqwflh7syq7fm-d-keycloak
+    namespace: platform-mesh-system
+    resourceVersion: "2030219"
+    uid: 8166269e-820d-4b09-9203-4752db6c0050
+  spec:
+    hostnames:
+    - 25veqwflh7syq7fm-d.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: keycloak
+        namespace: aitp-25veqwflh7syq7fm-d
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /keycloak
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T12:10:38Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T12:10:38Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T13:17:07Z"
+    generation: 1
+    name: aitp-33hins0iklcwfg45-d-app
+    namespace: platform-mesh-system
+    resourceVersion: "2179777"
+    uid: ed8fc29d-f8e7-4f87-90fe-24461e4ffb22
+  spec:
+    hostnames:
+    - d.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: oauth2-proxy
+        namespace: aitp-33hins0iklcwfg45-d
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T13:18:35Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T13:18:35Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T13:17:07Z"
+    generation: 1
+    name: aitp-33hins0iklcwfg45-d-keycloak
+    namespace: platform-mesh-system
+    resourceVersion: "2179776"
+    uid: 9789ad52-6dcd-4c69-9eaa-f7f084dbaced
+  spec:
+    hostnames:
+    - d.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: keycloak
+        namespace: aitp-33hins0iklcwfg45-d
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /keycloak
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T13:18:35Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T13:18:35Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T13:37:19Z"
+    generation: 1
+    name: aitp-33hins0iklcwfg45-testai-app
+    namespace: platform-mesh-system
+    resourceVersion: "2221816"
+    uid: afd34d45-e4c5-441a-87a7-2a5ffa4185e0
+  spec:
+    hostnames:
+    - testai.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: oauth2-proxy
+        namespace: aitp-33hins0iklcwfg45-testai
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T13:37:19Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T13:37:19Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T13:37:19Z"
+    generation: 1
+    name: aitp-33hins0iklcwfg45-testai-keycloak
+    namespace: platform-mesh-system
+    resourceVersion: "2221800"
+    uid: 42208921-0d64-4c04-8681-c82ce759f6ba
+  spec:
+    hostnames:
+    - testai.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: keycloak
+        namespace: aitp-33hins0iklcwfg45-testai
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /keycloak
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T13:37:19Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T13:37:19Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T08:09:56Z"
+    generation: 1
+    name: aitp-q3c0weh7suf5hgjk-my-aitrust-app
+    namespace: platform-mesh-system
+    resourceVersion: "1555041"
+    uid: 7bfea990-2d16-4f3b-b733-b16a490123ce
+  spec:
+    hostnames:
+    - q3c0weh7suf5hgjk-my-aitrust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: oauth2-proxy
+        namespace: aitp-q3c0weh7suf5hgjk-my-aitrust
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T08:13:01Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T08:13:01Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    creationTimestamp: "2026-08-11T08:09:56Z"
+    generation: 1
+    name: aitp-q3c0weh7suf5hgjk-my-aitrust-keycloak
+    namespace: platform-mesh-system
+    resourceVersion: "1555021"
+    uid: ede3e1fc-f8a2-49e7-9e2b-ee93c4c6e53d
+  spec:
+    hostnames:
+    - q3c0weh7suf5hgjk-my-aitrust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+      namespace: platform-mesh-system
+      sectionName: terminate-wildstar
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: keycloak
+        namespace: aitp-q3c0weh7suf5hgjk-my-aitrust
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /keycloak
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-11T08:13:01Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-11T08:13:01Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+        namespace: platform-mesh-system
+        sectionName: terminate-wildstar
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: infra
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:10:31Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: infra
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: dex
+    namespace: platform-mesh-system
+    resourceVersion: "101717"
+    uid: 764be7cc-045a-4340-be74-d2727dc75695
+  spec:
+    hostnames:
+    - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: dex
+        namespace: platform-mesh-system
+        port: 5556
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /dex
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: iam-service
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T12:23:37Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: iam-service
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: iam-service
+    namespace: platform-mesh-system
+    resourceVersion: "171036"
+    uid: a0ac5341-8e71-4871-8e59-967614fcab52
+  spec:
+    hostnames:
+    - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: iam-service
+        namespace: platform-mesh-system
+        port: 8080
+        weight: 1
+      filters:
+      - type: URLRewrite
+        urlRewrite:
+          path:
+            replacePrefixMatch: /graphql
+            type: ReplacePrefixMatch
+      - extensionRef:
+          group: traefik.io
+          kind: Middleware
+          name: cors-header
+        type: ExtensionRef
+      matches:
+      - path:
+          type: PathPrefix
+          value: /iam/graphql
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T12:23:37Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T12:23:37Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: iam-ui
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:09:55Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: iam-ui
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: iam-ui
+    namespace: platform-mesh-system
+    resourceVersion: "101715"
+    uid: b490b79c-2cad-458b-9ddc-77c44ac062e9
+  spec:
+    hostnames:
+    - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: iam-ui
+        namespace: platform-mesh-system
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /ui/iam
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: infra
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:10:31Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: infra
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: keycloak
+    namespace: platform-mesh-system
+    resourceVersion: "101714"
+    uid: a225adeb-7e8e-42dc-b62b-07ef1118dd43
+  spec:
+    hostnames:
+    - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: keycloak-service
+        namespace: platform-mesh-system
+        port: 8080
+        weight: 1
+      filters:
+      - extensionRef:
+          group: traefik.io
+          kind: Middleware
+          name: cors-header
+        type: ExtensionRef
+      matches:
+      - path:
+          type: PathPrefix
+          value: /keycloak
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: kubernetes-graphql-gateway
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:53:21Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: kubernetes-graphql-gateway
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: kubernetes-graphql-gateway
+    namespace: platform-mesh-system
+    resourceVersion: "143255"
+    uid: b8ea2803-2351-453f-9244-63b0b284e1db
+  spec:
+    hostnames:
+    - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: kubernetes-graphql-gateway
+        namespace: platform-mesh-system
+        port: 8080
+        weight: 1
+      filters:
+      - type: URLRewrite
+        urlRewrite:
+          path:
+            replacePrefixMatch: /api/clusters/
+            type: ReplacePrefixMatch
+      - extensionRef:
+          group: traefik.io
+          kind: Middleware
+          name: cors-header
+        type: ExtensionRef
+      matches:
+      - path:
+          type: PathPrefix
+          value: /gateway/api/clusters/
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T11:53:30Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T11:53:30Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: marketplace-ui
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:09:55Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: marketplace-ui
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: marketplace-ui
+    namespace: platform-mesh-system
+    resourceVersion: "101716"
+    uid: 7ff7ac2a-ed03-4acf-b137-485c7a68aa27
+  spec:
+    hostnames:
+    - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: marketplace-ui
+        namespace: platform-mesh-system
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /ui/marketplace
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T11:20:06Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+- apiVersion: gateway.networking.k8s.io/v1
+  kind: HTTPRoute
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: portal
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:53:21Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: portal
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: portal
+    namespace: platform-mesh-system
+    resourceVersion: "143256"
+    uid: 623c3ba6-51e4-45ee-8ee0-5456b0526d07
+  spec:
+    hostnames:
+    - ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - '*.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu'
+    parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: k8sapi-gateway
+    rules:
+    - backendRefs:
+      - group: ""
+        kind: Service
+        name: portal
+        namespace: platform-mesh-system
+        port: 8080
+        weight: 1
+      matches:
+      - path:
+          type: PathPrefix
+          value: /
+  status:
+    parents:
+    - conditions:
+      - lastTransitionTime: "2026-08-10T11:53:30Z"
+        message: ""
+        observedGeneration: 1
+        reason: Accepted
+        status: "True"
+        type: Accepted
+      - lastTransitionTime: "2026-08-10T11:53:30Z"
+        message: ""
+        observedGeneration: 1
+        reason: ResolvedRefs
+        status: "True"
+        type: ResolvedRefs
+      controllerName: traefik.io/gateway-controller
+      parentRef:
+        group: gateway.networking.k8s.io
+        kind: Gateway
+        name: k8sapi-gateway
+kind: List
+metadata:
+  resourceVersion: ""

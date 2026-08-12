@@ -1,0 +1,2 @@
+No configMap volumes on the traefik deployment.
+--- (context) all configmaps in ns default with traefik/tls in name ---

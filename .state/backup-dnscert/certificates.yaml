@@ -1,0 +1,1612 @@
+apiVersion: v1
+items:
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:11:54Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: opentelemetry-targetallocator
+      app.kubernetes.io/instance: observability.otel-gateway
+      app.kubernetes.io/managed-by: opentelemetry-operator
+      app.kubernetes.io/name: observability
+      app.kubernetes.io/part-of: opentelemetry
+      app.kubernetes.io/version: latest
+      helm.sh/chart: observability-0.4.0_66f1934592e9
+      helm.toolkit.fluxcd.io/name: observability
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: otel-gateway-ca-cert
+    namespace: observability
+    ownerReferences:
+    - apiVersion: opentelemetry.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: TargetAllocator
+      name: otel-gateway
+      uid: defbe4db-207c-410a-87b9-c0d5147de402
+    resourceVersion: "91753"
+    uid: 6312deb8-8b4a-42e6-8b17-7e552a0d2ee2
+  spec:
+    commonName: otel-gateway-ca-cert
+    duration: 17280h0m0s
+    isCA: true
+    issuerRef:
+      kind: Issuer
+      name: otel-gateway-self-signed-issuer
+    renewBefore: 4344h0m0s
+    secretName: otel-gateway-ca-cert
+    subject:
+      organizationalUnits:
+      - opentelemetry-operator
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:11:55Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2028-07-30T11:11:55Z"
+    notBefore: "2026-08-10T11:11:55Z"
+    renewalTime: "2028-01-31T11:11:55Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:11:55Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: opentelemetry-targetallocator
+      app.kubernetes.io/instance: observability.otel-gateway
+      app.kubernetes.io/managed-by: opentelemetry-operator
+      app.kubernetes.io/name: observability
+      app.kubernetes.io/part-of: opentelemetry
+      app.kubernetes.io/version: latest
+      helm.sh/chart: observability-0.4.0_66f1934592e9
+      helm.toolkit.fluxcd.io/name: observability
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: otel-gateway-ta-client-cert
+    namespace: observability
+    ownerReferences:
+    - apiVersion: opentelemetry.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: TargetAllocator
+      name: otel-gateway
+      uid: defbe4db-207c-410a-87b9-c0d5147de402
+    resourceVersion: "91800"
+    uid: e6408d56-5943-46a1-9906-16a9227e9a35
+  spec:
+    dnsNames:
+    - otel-gateway-targetallocator
+    - otel-gateway-targetallocator.observability.svc
+    - otel-gateway-targetallocator.observability.svc.cluster.local
+    duration: 2160h0m0s
+    issuerRef:
+      kind: Issuer
+      name: otel-gateway-ca-issuer
+    secretName: otel-gateway-ta-client-cert
+    subject:
+      organizationalUnits:
+      - opentelemetry-operator
+    usages:
+    - client auth
+    - server auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:11:56Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2026-11-08T11:11:55Z"
+    notBefore: "2026-08-10T11:11:55Z"
+    renewalTime: "2026-10-09T11:11:55Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:11:55Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: opentelemetry-targetallocator
+      app.kubernetes.io/instance: observability.otel-gateway
+      app.kubernetes.io/managed-by: opentelemetry-operator
+      app.kubernetes.io/name: observability
+      app.kubernetes.io/part-of: opentelemetry
+      app.kubernetes.io/version: latest
+      helm.sh/chart: observability-0.4.0_66f1934592e9
+      helm.toolkit.fluxcd.io/name: observability
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: otel-gateway-ta-server-cert
+    namespace: observability
+    ownerReferences:
+    - apiVersion: opentelemetry.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: TargetAllocator
+      name: otel-gateway
+      uid: defbe4db-207c-410a-87b9-c0d5147de402
+    resourceVersion: "91785"
+    uid: ce42cb72-f2ac-4a1d-8e08-7a52790f5d11
+  spec:
+    dnsNames:
+    - otel-gateway-targetallocator
+    - otel-gateway-targetallocator.observability.svc
+    - otel-gateway-targetallocator.observability.svc.cluster.local
+    duration: 2160h0m0s
+    issuerRef:
+      kind: Issuer
+      name: otel-gateway-ca-issuer
+    secretName: otel-gateway-ta-server-cert
+    subject:
+      organizationalUnits:
+      - opentelemetry-operator
+    usages:
+    - client auth
+    - server auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:11:56Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2026-11-08T11:11:55Z"
+    notBefore: "2026-08-10T11:11:55Z"
+    renewalTime: "2026-10-09T11:11:55Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: account-operator
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:53:14Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: account-operator
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: account-operator-ca-cert
+    namespace: platform-mesh-system
+    resourceVersion: "142793"
+    uid: edf55012-7a16-4f4d-a231-ff3468a8e934
+  spec:
+    commonName: account-operator-ca
+    duration: 8760h
+    isCA: true
+    issuerRef:
+      kind: Issuer
+      name: account-operator-selfsigned-issuer
+    renewBefore: 720h
+    secretName: account-operator-ca-secret
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:53:14Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:09:44Z"
+    notBefore: "2026-08-10T11:09:44Z"
+    renewalTime: "2027-07-11T11:09:44Z"
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: account-operator
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:53:14Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: account-operator
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: account-operator-serving-cert
+    namespace: platform-mesh-system
+    resourceVersion: "142791"
+    uid: bcc64f8a-86f7-47c0-8d9d-e4a6b8d43994
+  spec:
+    dnsNames:
+    - account-operator-webhook.platform-mesh-system.svc
+    - account-operator-webhook.platform-mesh-system.svc.cluster.local
+    duration: 2160h
+    issuerRef:
+      kind: Issuer
+      name: account-operator-ca-issuer
+    renewBefore: 720h
+    secretName: account-operator-webhook-server-cert
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:53:14Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2026-11-08T11:09:44Z"
+    notBefore: "2026-08-10T11:09:44Z"
+    renewalTime: "2026-10-09T11:09:44Z"
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:29Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: cache-server
+      app.kubernetes.io/instance: cache-server
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: cache-server-ca
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: CacheServer
+      name: cache-server
+      uid: 6bdb6661-25e3-4ea6-ba5a-be1290ea262c
+    resourceVersion: "88622"
+    uid: 2c1caf00-3d85-4d8e-b259-3a33676ff907
+  spec:
+    commonName: cache-server-ca
+    duration: 87600h0m0s
+    isCA: true
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: selfsigned
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 720h0m0s
+    secretName: cache-server-ca
+    secretTemplate:
+      labels:
+        operator.kcp.io/cache-server: cache-server
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:31Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2036-08-07T11:10:31Z"
+    notBefore: "2026-08-10T11:10:31Z"
+    renewalTime: "2036-07-08T11:10:31Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:29Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: cache-server
+      app.kubernetes.io/instance: cache-server
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: cache-server-client-certificate
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: CacheServer
+      name: cache-server
+      uid: 6bdb6661-25e3-4ea6-ba5a-be1290ea262c
+    resourceVersion: "88760"
+    uid: a74e1cab-5100-4aa6-99c7-20a69d765e79
+  spec:
+    commonName: cache-client
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: cache-server-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: cache-server-client-certificate
+    secretTemplate:
+      labels:
+        operator.kcp.io/cache-server: cache-server
+    subject:
+      organizations:
+      - system:masters
+    usages:
+    - client auth
+    - key encipherment
+    - digital signature
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:34Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:31Z"
+    notBefore: "2026-08-10T11:10:31Z"
+    renewalTime: "2027-08-03T11:10:31Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:29Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: cache-server
+      app.kubernetes.io/instance: cache-server
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: cache-server-server
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: CacheServer
+      name: cache-server
+      uid: 6bdb6661-25e3-4ea6-ba5a-be1290ea262c
+    resourceVersion: "88657"
+    uid: 336bdfe5-2c53-4f22-99cd-d94930d0bb89
+  spec:
+    dnsNames:
+    - localhost
+    - cache-server-cache-server.platform-mesh-system.svc.cluster.local
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: cache-server-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: cache-server-server
+    secretTemplate:
+      labels:
+        operator.kcp.io/cache-server: cache-server
+    usages:
+    - server auth
+    - key encipherment
+    - digital signature
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:34Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:31Z"
+    notBefore: "2026-08-10T11:10:31Z"
+    renewalTime: "2027-08-03T11:10:31Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: infra
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:10:29Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: infra
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: kcp-cluster-admin-client-cert
+    namespace: platform-mesh-system
+    resourceVersion: "89751"
+    uid: 62941f93-ef5e-42b3-81f3-a0796cac555d
+  spec:
+    commonName: cluster-admin
+    issuerRef:
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 2048
+    secretName: kcp-cluster-admin-client-cert
+    subject:
+      organizations:
+      - system:kcp:admin
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:53Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2026-11-08T11:10:47Z"
+    notBefore: "2026-08-10T11:10:47Z"
+    renewalTime: "2026-10-09T11:10:47Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: infra
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: kubeconfig-cert-kubeconfig-kcp-admin
+    namespace: platform-mesh-system
+    resourceVersion: "89737"
+    uid: d2c8e7fb-379c-4c02-8736-fc403588dfa9
+  spec:
+    commonName: kcp-admin
+    duration: 8766h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    secretName: kubeconfig-cert-kubeconfig-kcp-admin
+    secretTemplate:
+      labels:
+        operator.kcp.io/kubeconfig: kubeconfig-kcp-admin
+    subject:
+      organizations:
+      - kubeconfig:kubeconfig-kcp-admin
+      - system:kcp:admin
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:51Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T17:10:46Z"
+    notBefore: "2026-08-10T11:10:46Z"
+    renewalTime: "2027-04-10T23:10:46Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:12:28Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/instance: observability
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: observability
+      app.kubernetes.io/version: 0.0.0
+      helm.sh/chart: observability-0.4.0_66f1934592e9
+    name: kubeconfig-cert-metrics-viewer
+    namespace: platform-mesh-system
+    resourceVersion: "92735"
+    uid: d99a514d-095c-434a-94eb-132c68de1a56
+  spec:
+    commonName: metrics-viewer
+    duration: 8766h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    secretName: kubeconfig-cert-metrics-viewer
+    secretTemplate:
+      labels:
+        operator.kcp.io/kubeconfig: metrics-viewer
+    subject:
+      organizations:
+      - kubeconfig:metrics-viewer
+      - system:monitoring
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:12:29Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T17:12:29Z"
+    notBefore: "2026-08-10T11:12:29Z"
+    renewalTime: "2027-04-10T23:12:29Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:09:44Z"
+    generation: 1
+    name: rebac-authz-webhook-cert
+    namespace: platform-mesh-system
+    resourceVersion: "86303"
+    uid: 9ce97e62-d44e-490a-bb3f-3ca014333255
+  spec:
+    dnsNames:
+    - rebac-authz-webhook.platform-mesh-system.svc.cluster.local
+    issuerRef:
+      name: rebac-authz-webhook-issuer
+    secretName: rebac-authz-webhook-cert
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:09:45Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2026-11-08T11:09:45Z"
+    notBefore: "2026-08-10T11:09:45Z"
+    renewalTime: "2026-10-09T11:09:45Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-ca
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89113"
+    uid: e79b7481-4091-4d39-bccb-97b6e2a1ae3a
+  spec:
+    commonName: root-ca
+    duration: 87600h0m0s
+    isCA: true
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: selfsigned
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 720h0m0s
+    secretName: root-ca
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:44Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2036-08-07T11:10:41Z"
+    notBefore: "2026-08-10T11:10:41Z"
+    renewalTime: "2036-07-08T11:10:41Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-client
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89724"
+    uid: bed117a1-9bf0-43c9-9e23-5a655815c71f
+  spec:
+    commonName: root
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-client
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    subject:
+      organizations:
+      - system:masters
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:51Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:46Z"
+    notBefore: "2026-08-10T11:10:46Z"
+    renewalTime: "2027-08-03T11:10:46Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-client-ca
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89317"
+    uid: 286e7515-5bb1-4f81-84db-5c2c75ded3b9
+  spec:
+    commonName: root-client-ca
+    duration: 87600h0m0s
+    isCA: true
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 720h0m0s
+    secretName: root-client-ca
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:46Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2036-08-07T11:10:44Z"
+    notBefore: "2026-08-10T11:10:44Z"
+    renewalTime: "2036-07-08T11:10:44Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-external-logical-cluster-admin
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89745"
+    uid: bfb8a39c-0b0a-49c5-ba75-f88686190caa
+  spec:
+    commonName: external-logical-cluster-admin
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-external-logical-cluster-admin
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    subject:
+      organizations:
+      - system:kcp:external-logical-cluster-admin
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:52Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:46Z"
+    notBefore: "2026-08-10T11:10:46Z"
+    renewalTime: "2027-08-03T11:10:46Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:52Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: front-proxy
+      app.kubernetes.io/instance: frontproxy
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-frontproxy-kubeconfig
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: FrontProxy
+      name: frontproxy
+      uid: d12ff672-b072-4eaf-97c0-cbc35edf8bad
+    resourceVersion: "89913"
+    uid: 444cff8f-852d-428e-af20-bc0555dddf54
+  spec:
+    commonName: kcp-front-proxy
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-frontproxy-kubeconfig
+    secretTemplate:
+      labels:
+        operator.kcp.io/front-proxy: frontproxy
+        operator.kcp.io/rootshard: root
+    subject:
+      organizations:
+      - system:masters
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:11:02Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:11:00Z"
+    notBefore: "2026-08-10T11:11:00Z"
+    renewalTime: "2027-08-03T11:11:00Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:52Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: front-proxy
+      app.kubernetes.io/instance: frontproxy
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-frontproxy-requestheader
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: FrontProxy
+      name: frontproxy
+      uid: d12ff672-b072-4eaf-97c0-cbc35edf8bad
+    resourceVersion: "89909"
+    uid: 9230c530-d113-4549-9c13-e4565c95a840
+  spec:
+    commonName: kcp-front-proxy
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-requestheader-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-frontproxy-requestheader
+    secretTemplate:
+      labels:
+        operator.kcp.io/front-proxy: frontproxy
+        operator.kcp.io/rootshard: root
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:11:01Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:59Z"
+    notBefore: "2026-08-10T11:10:59Z"
+    renewalTime: "2027-08-03T11:10:59Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:52Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: front-proxy
+      app.kubernetes.io/instance: frontproxy
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-frontproxy-server
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: FrontProxy
+      name: frontproxy
+      uid: d12ff672-b072-4eaf-97c0-cbc35edf8bad
+    resourceVersion: "89906"
+    uid: e796a1a7-050f-4e62-9dee-6f6c057f8557
+  spec:
+    dnsNames:
+    - frontproxy-front-proxy
+    - frontproxy-front-proxy.platform-mesh-system
+    - frontproxy-front-proxy.platform-mesh-system.svc.cluster.local
+    - kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-server-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-frontproxy-server
+    secretTemplate:
+      labels:
+        operator.kcp.io/front-proxy: frontproxy
+        operator.kcp.io/rootshard: root
+    usages:
+    - server auth
+    - key encipherment
+    - digital signature
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:11:00Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:58Z"
+    notBefore: "2026-08-10T11:10:58Z"
+    renewalTime: "2027-08-03T11:10:58Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-kcp-operator
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89757"
+    uid: f1dfb55b-7cda-4cab-bbad-462f5a95f902
+  spec:
+    commonName: system:kcp-operator
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-kcp-operator
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    subject:
+      organizations:
+      - system:kcp:admin
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:53Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:47Z"
+    notBefore: "2026-08-10T11:10:47Z"
+    renewalTime: "2027-08-03T11:10:47Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-logical-cluster-admin
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89755"
+    uid: cc909500-6832-412b-bbbb-fde086e68e06
+  spec:
+    commonName: logical-cluster-admin
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-logical-cluster-admin
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    subject:
+      organizations:
+      - system:kcp:logical-cluster-admin
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:53Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:47Z"
+    notBefore: "2026-08-10T11:10:47Z"
+    renewalTime: "2027-08-03T11:10:47Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:46Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard-proxy
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-proxy-kubeconfig
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89810"
+    uid: 10473678-8659-4437-8fb4-c87664ec7fb9
+  spec:
+    commonName: kcp-root-shard-proxy
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-proxy-kubeconfig
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    subject:
+      organizations:
+      - system:masters
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:56Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:55Z"
+    notBefore: "2026-08-10T11:10:55Z"
+    renewalTime: "2027-08-03T11:10:55Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:46Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard-proxy
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-proxy-requestheader
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89848"
+    uid: 1e04960a-fff6-4bde-b1e4-b1d80412792e
+  spec:
+    commonName: kcp-root-shard-proxy
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-requestheader-client-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-proxy-requestheader
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    usages:
+    - client auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:58Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:56Z"
+    notBefore: "2026-08-10T11:10:56Z"
+    renewalTime: "2027-08-03T11:10:56Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:46Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard-proxy
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-proxy-server
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89818"
+    uid: 4d1921dc-76d3-4ede-b4fc-884c6cda473c
+  spec:
+    dnsNames:
+    - root-proxy
+    - root-proxy.platform-mesh-system
+    - root-proxy.platform-mesh-system.svc.cluster.local
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-server-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-proxy-server
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    usages:
+    - server auth
+    - key encipherment
+    - digital signature
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:58Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:56Z"
+    notBefore: "2026-08-10T11:10:56Z"
+    renewalTime: "2027-08-03T11:10:56Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-requestheader-client-ca
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89332"
+    uid: dda75d7e-e730-4c40-bbe7-6b0d28799509
+  spec:
+    commonName: root-requestheader-client-ca
+    duration: 87600h0m0s
+    isCA: true
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 720h0m0s
+    secretName: root-requestheader-client-ca
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:46Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2036-08-07T11:10:44Z"
+    notBefore: "2026-08-10T11:10:44Z"
+    renewalTime: "2036-07-08T11:10:44Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-server
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89412"
+    uid: a6911d73-260b-40f1-b68d-b4d847c078a9
+  spec:
+    dnsNames:
+    - kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    - root-kcp
+    - root-kcp.platform-mesh-system
+    - root-kcp.platform-mesh-system.svc.cluster.local
+    - root.kcp.localhost
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-server-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-server
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    usages:
+    - server auth
+    - key encipherment
+    - digital signature
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:50Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:46Z"
+    notBefore: "2026-08-10T11:10:46Z"
+    renewalTime: "2027-08-03T11:10:46Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-server-ca
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89346"
+    uid: bc1576e5-c7bd-4f68-a7b2-7b275af74568
+  spec:
+    commonName: root-server-ca
+    duration: 87600h0m0s
+    isCA: true
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 720h0m0s
+    secretName: root-server-ca
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:45Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2036-08-07T11:10:44Z"
+    notBefore: "2026-08-10T11:10:44Z"
+    renewalTime: "2036-07-08T11:10:44Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-service-account
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89761"
+    uid: ddf38fc9-3627-48b0-8eae-192a78fbbc24
+  spec:
+    commonName: root-service-account
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-service-account-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-service-account
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    usages:
+    - digital signature
+    - key encipherment
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:54Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:47Z"
+    notBefore: "2026-08-10T11:10:47Z"
+    renewalTime: "2027-08-03T11:10:47Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-service-account-ca
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89349"
+    uid: a07db293-dd0e-4d0e-813f-52781e03810a
+  spec:
+    commonName: root-service-account-ca
+    duration: 87600h0m0s
+    isCA: true
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 720h0m0s
+    secretName: root-service-account-ca
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:47Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2036-08-07T11:10:44Z"
+    notBefore: "2026-08-10T11:10:44Z"
+    renewalTime: "2036-07-08T11:10:44Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    creationTimestamp: "2026-08-10T11:10:32Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/component: rootshard
+      app.kubernetes.io/instance: root
+      app.kubernetes.io/managed-by: kcp-operator
+      app.kubernetes.io/name: kcp
+    name: root-virtual-workspaces
+    namespace: platform-mesh-system
+    ownerReferences:
+    - apiVersion: operator.kcp.io/v1alpha1
+      blockOwnerDeletion: true
+      controller: true
+      kind: RootShard
+      name: root
+      uid: a067afab-e708-4a7d-a57a-cced81363c0b
+    resourceVersion: "89695"
+    uid: ba232293-2d7b-4a62-a5ab-a81a5fb11284
+  spec:
+    dnsNames:
+    - kcp.api.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-server-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: root-virtual-workspaces
+    secretTemplate:
+      labels:
+        operator.kcp.io/rootshard: root
+    usages:
+    - server auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:10:50Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:10:46Z"
+    notBefore: "2026-08-10T11:10:46Z"
+    renewalTime: "2027-08-03T11:10:46Z"
+    revision: 1
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: security-operator
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T12:08:38Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: security-operator
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: security-operator-ca-cert
+    namespace: platform-mesh-system
+    resourceVersion: "156429"
+    uid: 957b5102-19e1-42d3-9a1d-a507aff9d1fb
+  spec:
+    commonName: security-operator-ca
+    duration: 8760h
+    isCA: true
+    issuerRef:
+      kind: Issuer
+      name: security-operator-selfsigned-issuer
+    renewBefore: 720h
+    secretName: security-operator-ca-secret
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T12:08:38Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:09:59Z"
+    notBefore: "2026-08-10T11:09:59Z"
+    renewalTime: "2027-07-11T11:09:59Z"
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: security-operator
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T12:08:38Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: security-operator
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: security-operator-serving-cert
+    namespace: platform-mesh-system
+    resourceVersion: "156423"
+    uid: 22929251-7d38-466a-a5c5-6f0984041462
+  spec:
+    dnsNames:
+    - security-operator-webhook.platform-mesh-system.svc
+    - security-operator-webhook.platform-mesh-system.svc.cluster.local
+    duration: 2160h
+    issuerRef:
+      kind: Issuer
+      name: security-operator-ca-issuer
+    renewBefore: 720h
+    secretName: security-operator-webhook-server-cert
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T12:08:38Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2026-11-08T11:09:59Z"
+    notBefore: "2026-08-10T11:09:59Z"
+    renewalTime: "2026-10-09T11:09:59Z"
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    annotations:
+      meta.helm.sh/release-name: virtual-workspaces
+      meta.helm.sh/release-namespace: platform-mesh-system
+    creationTimestamp: "2026-08-10T11:53:27Z"
+    generation: 1
+    labels:
+      app.kubernetes.io/managed-by: Helm
+      helm.toolkit.fluxcd.io/name: virtual-workspaces
+      helm.toolkit.fluxcd.io/namespace: platform-mesh-system
+    name: virtual-workspaces
+    namespace: platform-mesh-system
+    resourceVersion: "143200"
+    uid: d0d35d4b-b587-4e95-91c3-3e60360e3546
+  spec:
+    dnsNames:
+    - frontproxy-front-proxy
+    - frontproxy-front-proxy.platform-mesh-system
+    - frontproxy-front-proxy.platform-mesh-system.svc.cluster.local
+    - virtual-workspaces
+    - virtual-workspaces.platform-mesh-system
+    - virtual-workspaces.platform-mesh-system.svc.cluster.local
+    - localhost
+    duration: 8760h0m0s
+    issuerRef:
+      group: cert-manager.io
+      kind: Issuer
+      name: root-server-ca
+    privateKey:
+      algorithm: RSA
+      size: 4096
+    renewBefore: 168h0m0s
+    secretName: virtual-workspaces-cert
+    usages:
+    - server auth
+  status:
+    conditions:
+    - lastTransitionTime: "2026-08-10T11:53:27Z"
+      message: Certificate is up to date and has not expired
+      observedGeneration: 1
+      reason: Ready
+      status: "True"
+      type: Ready
+    notAfter: "2027-08-10T11:38:17Z"
+    notBefore: "2026-08-10T11:38:17Z"
+    renewalTime: "2027-08-03T11:38:17Z"
+kind: List
+metadata:
+  resourceVersion: ""
