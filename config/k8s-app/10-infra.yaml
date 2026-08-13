@@ -175,6 +175,10 @@ spec:
           env:
             - { name: KEYCLOAK_ADMIN, valueFrom: { secretKeyRef: { name: app-secrets, key: KEYCLOAK_ADMIN } } }
             - { name: KEYCLOAK_ADMIN_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: KEYCLOAK_ADMIN_PASSWORD } } }
+            # Keycloak 25+ bootstraps the initial admin from KC_BOOTSTRAP_ADMIN_* (the legacy KEYCLOAK_ADMIN_*
+            # are deprecated and were NOT reliably creating the admin here → 403 at the master token endpoint).
+            - { name: KC_BOOTSTRAP_ADMIN_USERNAME, valueFrom: { secretKeyRef: { name: app-secrets, key: KEYCLOAK_ADMIN } } }
+            - { name: KC_BOOTSTRAP_ADMIN_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: KEYCLOAK_ADMIN_PASSWORD } } }
             - { name: KC_DB, value: postgres }
             - { name: KC_DB_URL, value: "jdbc:postgresql://postgres:5432/keycloak" }
             - { name: KC_DB_USERNAME, valueFrom: { secretKeyRef: { name: app-secrets, key: POSTGRES_USER } } }

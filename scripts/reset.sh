@@ -1,9 +1,10 @@
 #!/bin/bash
-# reset.sh — remove the AI Trust MSP provider + all instances it stamped, keeping the mesh.
-#   - delete AITrustPlatformInstance CRs in the consumer ws (finalizer removes per-instance HTTPRoutes
-#     + deletes the aitp-* namespace, cascading the whole app copy)
-#   - uninstall the workload + pm charts; delete the provider workspace
-#   - --pool also drops the worker-msp-aitrust pool
+# reset.sh — remove the AI Trust MT provider + the shared app + all Subscriptions, keeping the mesh.
+#   - delete Subscription CRs in the consumer ws (finalizer soft-disables the tenant realm; data retained)
+#   - uninstall the workload + pm charts; delete the shared app namespace ($PROVIDER_NS, cascades everything)
+#   - delete the provider workspace ($PROVIDER_WS)
+#   - sweep the aitrust-mt shared-app HTTPRoute on the gateway
+#   - --pool also drops the $WORKER_POOL (ai-trust-mt) worker pool
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"; load_config
 [ -s "$SHOOT_KUBECONFIG" ] || mint_shoot_kubeconfig
@@ -11,12 +12,12 @@ setup_kcp; kcp_portforward
 trap 'pkill -f "port-forward.*root-proxy.*6443" 2>/dev/null || true' EXIT
 WS="root:orgs:$ORG_NAME:$ACCOUNT_NAME"
 
-log "Deleting AITrustPlatformInstance CRs in $WS (finalizer cleans namespaces + routes)…"
-kc "$WS" -n default delete aitrustplatforminstance --all --wait=false >/dev/null 2>&1 || true
+log "Deleting Subscription CRs in $WS (finalizer soft-disables the tenant realms)…"
+kc "$WS" -n default delete subscription --all --wait=false >/dev/null 2>&1 || true
 sleep 10
 
-log "Uninstalling workload chart (ns $PROVIDER_NS)…"
-helm --kubeconfig "$SHOOT_KUBECONFIG" -n "$PROVIDER_NS" uninstall aitrust-msp-app >/dev/null 2>&1 || true
+log "Uninstalling workload chart + deleting the shared app namespace (ns $PROVIDER_NS)…"
+helm --kubeconfig "$SHOOT_KUBECONFIG" -n "$PROVIDER_NS" uninstall aitrust-mt-app >/dev/null 2>&1 || true
 sk delete ns "$PROVIDER_NS" --wait=false >/dev/null 2>&1 || true
 
 log "Uninstalling pm chart from $PROVIDER_WS…"
@@ -27,8 +28,8 @@ log "Deleting provider workspace $PROVIDER_WS…"
 PARENT="${PROVIDER_WS%:*}"; WSNAME="${PROVIDER_WS##*:}"
 kc "$PARENT" delete workspace "$WSNAME" --wait=false >/dev/null 2>&1 || true
 
-# Sweep any leftover per-instance HTTPRoutes on the gateway.
-for r in $(sk -n "$GATEWAY_NS" get httproute -o name 2>/dev/null | grep -E 'aitp-' || true); do
+# Sweep the shared-app HTTPRoute (+ any leftover per-tenant routes) on the gateway.
+for r in $(sk -n "$GATEWAY_NS" get httproute -o name 2>/dev/null | grep -E 'aitrust-mt' || true); do
   sk -n "$GATEWAY_NS" delete "$r" >/dev/null 2>&1 || true
 done
 

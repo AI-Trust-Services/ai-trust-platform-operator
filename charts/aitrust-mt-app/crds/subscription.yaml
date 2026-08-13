@@ -1,0 +1,72 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: subscriptions.sub.aitrustmt.msp
+spec:
+  group: sub.aitrustmt.msp
+  names:
+    kind: Subscription
+    listKind: SubscriptionList
+    plural: subscriptions
+    singular: subscription
+    shortNames: [aitsub]
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    additionalPrinterColumns:
+    - name: URL
+      type: string
+      jsonPath: .status.url
+    - name: Ready
+      type: boolean
+      jsonPath: .status.ready
+    - name: Phase
+      type: string
+      jsonPath: .status.phase
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion: { type: string }
+          kind: { type: string }
+          metadata: { type: object }
+          spec:
+            type: object
+            properties:
+              # A subscription to the SHARED AI Trust Platform MT app. It does NOT create an app copy;
+              # the operator provisions a TENANT (per-tenant Keycloak realm + tenant_id data isolation)
+              # inside the one shared instance. Size is irrelevant to a subscription (no per-tenant infra).
+              displayName: { type: string, default: "AI Trust Platform MT" }
+              plan: { type: string, enum: [standard, enterprise], default: standard }  # cosmetic tier label
+              adminEmail: { type: string, default: "" }
+              # The consumer ORG this subscription belongs to == its Platform Mesh account name == its
+              # Keycloak realm name in the shared mesh Keycloak (the mesh provisions one realm per org).
+              # The operator binds a per-org oauth2-proxy to realms/<org>. If empty, the operator falls
+              # back to the mirror namespace (cluster id) — which is NOT a real realm, so set this.
+              org: { type: string, default: "" }
+          status:
+            type: object
+            properties:
+              ready: { type: boolean }
+              url: { type: string }          # the tenant's login URL into the shared app
+              tenantId: { type: string }     # the resolved Platform Mesh / APO account id
+              realm: { type: string }        # the per-tenant Keycloak realm provisioned for it
+              phase: { type: string }        # Pending | Provisioning | Ready | Degraded
+              observedGeneration: { type: integer }
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type: { type: string }
+                    status: { type: string }
+                    reason: { type: string }
+                    message: { type: string }
+                    lastTransitionTime: { type: string, format: date-time }
+    subresources:
+      status: {}

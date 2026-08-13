@@ -11,11 +11,14 @@ spec:
       containers:
         - name: ai-system-registry-backend
           image: aitrust/ai-system-registry-backend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/registry" }
+            - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
+            - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
+            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
           ports: [{ containerPort: 8001 }]
           readinessProbe:
             exec: { command: ["python","healthcheck.py"] }
@@ -40,7 +43,7 @@ spec:
       containers:
         - name: monitoring-backend
           image: aitrust/monitoring-backend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -49,6 +52,9 @@ spec:
             - { name: CLICKHOUSE_PORT, value: "8123" }
             - { name: CLICKHOUSE_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_USER } } }
             - { name: CLICKHOUSE_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_PASSWORD } } }
+            - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
+            - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
+            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
           ports: [{ containerPort: 8003 }]
           readinessProbe:
             exec: { command: ["python","healthcheck.py"] }
@@ -73,11 +79,14 @@ spec:
       containers:
         - name: overview-backend
           image: aitrust/overview-backend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/overview" }
+            - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
+            - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
+            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
           ports: [{ containerPort: 8004 }]
           readinessProbe:
             exec: { command: ["python","healthcheck.py"] }
@@ -102,7 +111,7 @@ spec:
       containers:
         - name: alerts-backend
           image: aitrust/alerts-backend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -111,6 +120,9 @@ spec:
             - { name: CLICKHOUSE_PORT, value: "8123" }
             - { name: CLICKHOUSE_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_USER } } }
             - { name: CLICKHOUSE_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_PASSWORD } } }
+            - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
+            - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
+            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
           ports: [{ containerPort: 8005 }]
           readinessProbe:
             exec: { command: ["python","healthcheck.py"] }
@@ -135,7 +147,7 @@ spec:
       containers:
         - name: compliance-backend
           image: aitrust/compliance-backend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -146,6 +158,9 @@ spec:
             - { name: MINIO_ROOT_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: MINIO_ROOT_PASSWORD } } }
             - { name: MINIO_SECURE, valueFrom: { configMapKeyRef: { name: app-config, key: MINIO_SECURE } } }
             - { name: MINIO_REGION, valueFrom: { configMapKeyRef: { name: app-config, key: MINIO_REGION } } }
+            - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
+            - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
+            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
           ports: [{ containerPort: 8007 }]
           readinessProbe:
             exec: { command: ["python","healthcheck.py"] }
@@ -170,7 +185,7 @@ spec:
       containers:
         - name: decision-trace-analyzer-backend
           image: aitrust/decision-trace-analyzer-backend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -179,6 +194,9 @@ spec:
             - { name: CLICKHOUSE_PORT, value: "8123" }
             - { name: CLICKHOUSE_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_USER } } }
             - { name: CLICKHOUSE_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_PASSWORD } } }
+            - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
+            - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
+            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
           ports: [{ containerPort: 8006 }]
           readinessProbe:
             exec: { command: ["python","healthcheck.py"] }
@@ -193,6 +211,65 @@ spec: { selector: { app: decision-trace-analyzer-backend }, ports: [{ port: 8006
 ---
 apiVersion: apps/v1
 kind: Deployment
+metadata: { name: users-backend, namespace: ai-trust-app }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: users-backend } }
+  template:
+    metadata: { labels: { app: users-backend } }
+    spec:
+      containers:
+        - name: users-backend
+          image: aitrust/users-backend:kind
+          imagePullPolicy: IfNotPresent
+          env:
+            - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
+            - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
+            - { name: ROOT_PATH, value: "/api/users" }
+            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
+            - { name: KEYCLOAK_REALM, value: "ai-trust" }
+            - { name: USERS_BACKEND_CLIENT_ID, value: "users-backend" }
+            - { name: USERS_BACKEND_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: app-secrets, key: USERS_BACKEND_CLIENT_SECRET } } }
+            - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
+            - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
+          ports: [{ containerPort: 8008 }]
+          readinessProbe:
+            exec: { command: ["python","healthcheck.py"] }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata: { name: users-backend, namespace: ai-trust-app }
+spec: { selector: { app: users-backend }, ports: [{ port: 8008, targetPort: 8008 }] }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: users-frontend, namespace: ai-trust-app }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: users-frontend } }
+  template:
+    metadata: { labels: { app: users-frontend } }
+    spec:
+      containers:
+        - name: users-frontend
+          image: aitrust/users-frontend:kind
+          imagePullPolicy: IfNotPresent
+          ports: [{ containerPort: 80 }]
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata: { name: users-frontend, namespace: ai-trust-app }
+spec: { selector: { app: users-frontend }, ports: [{ port: 80, targetPort: 80 }] }
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata: { name: ai-system-registry-frontend, namespace: ai-trust-app }
 spec:
   replicas: 1
@@ -203,7 +280,7 @@ spec:
       containers:
         - name: ai-system-registry-frontend
           image: aitrust/ai-system-registry-frontend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -227,7 +304,7 @@ spec:
       containers:
         - name: monitoring-frontend
           image: aitrust/monitoring-frontend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -251,7 +328,7 @@ spec:
       containers:
         - name: overview-frontend
           image: aitrust/overview-frontend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -275,7 +352,7 @@ spec:
       containers:
         - name: alerts-frontend
           image: aitrust/alerts-frontend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -299,7 +376,7 @@ spec:
       containers:
         - name: compliance-frontend
           image: aitrust/compliance-frontend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -323,7 +400,7 @@ spec:
       containers:
         - name: decision-trace-analyzer-frontend
           image: aitrust/decision-trace-analyzer-frontend:kind
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: aitrust-mt-app
+description: >-
+  AI Trust Platform MT (multi-tenant) provider — workload side. Deploys the operator (watches
+  Subscription and provisions a per-tenant realm + tenant_id isolation inside the ONE shared app),
+  the api-syncagent (mirrors the CR between the consumer's kcp workspace and this shoot), and the
+  portal content nginx (serves /pm-content.json for the marketplace tile).
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

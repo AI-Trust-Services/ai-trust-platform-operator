@@ -1,10 +1,11 @@
-# Multi-stage build for the AI Trust MSP operator.
-# The app manifests are embedded (embed.FS) from ./manifests, so the image is self-contained:
-# it renders + applies the full app stack per AITrustPlatformInstance CR.
+# Multi-stage build for the AI Trust Platform MT (subscription) operator.
+# It embeds (embed.FS) only a small tenant-provision Job template from ./manifests — per Subscription
+# it provisions a TENANT (per-tenant Keycloak realm) in the SHARED app; it does NOT stamp an app copy.
 FROM golang:1.23-alpine AS build
 WORKDIR /src
 COPY go.mod .
 COPY main.go .
+COPY helpers.go .
 COPY manifests ./manifests
 RUN go get sigs.k8s.io/controller-runtime@v0.19.3 && \
     go get k8s.io/apimachinery@v0.31.3 && \

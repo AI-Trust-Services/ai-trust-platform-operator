@@ -1,0 +1,136 @@
+{{- if .Values.portalIntegration.enabled }}
+# nginx serving /pm-content.json — the portal micro-frontend descriptor that renders the marketplace
+# tile + nav for Subscription. The pm chart's ContentConfiguration points at this Service
+# over IN-CLUSTER HTTP (self-signed mesh breaks external-HTTPS CC TLS verify).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aitrust-mt-portal-config
+  namespace: {{ .Release.Namespace }}
+  labels: { app.kubernetes.io/component: portal-integration }
+data:
+  pm-content.json: |-
+    {
+      "name": "aitrustmt",
+      "luigiConfigFragment": {
+        "data": {
+          "nodes": [
+            {
+              "pathSegment": "subscriptions",
+              "navigationContext": "subscriptions",
+              "label": "Subscriptions",
+              "icon": "shield",
+              "entityType": "main.core_platform-mesh_io_account.namespace",
+              "category": { "label": "AI Trust Platform MT", "icon": "shield", "collapsible": true, "order": 810 },
+              "url": "/assets/platform-mesh-portal-ui-wc.js#generic-list-view",
+              "webcomponent": { "selfRegistered": true },
+              "keepSelectedForChildren": true,
+              "context": {
+                "resourceDefinition": {
+                  "apiGroup": "sub_aitrustmt_msp",
+                  "version": "v1alpha1",
+                  "entity": "Subscription",
+                  "entityCollection": "Subscriptions",
+                  "group": "sub.aitrustmt.msp",
+                  "plural": "subscriptions",
+                  "singular": "subscription",
+                  "kind": "Subscription",
+                  "scope": "Namespaced",
+                  "namespace": null,
+                  "ui": {
+                    "logoUrl": "https://cdn.jsdelivr.net/gh/ifdotpy/db@master/ai-128.png",
+                    "createView": {
+                      "fields": [
+                        { "label": "Name", "property": "metadata.name", "required": true },
+                        { "label": "Display Name", "property": "spec.displayName", "required": true },
+                        { "label": "Org (mesh realm)", "property": "spec.org", "required": true },
+                        { "label": "Plan", "property": "spec.plan", "values": ["standard", "enterprise"], "defaultValue": "standard" },
+                        { "label": "Admin Email", "property": "spec.adminEmail" }
+                      ]
+                    },
+                    "listView": {
+                      "fields": [
+                        { "label": "Name", "property": "metadata.name" },
+                        { "label": "Display Name", "property": "spec.displayName" },
+                        { "label": "Org", "property": "spec.org" },
+                        { "label": "URL", "property": "status.url" },
+                        { "label": "Phase", "labelDisplay": true, "property": "status.phase" },
+                        { "label": "Ready", "labelDisplay": true, "property": "status.ready" }
+                      ]
+                    }
+                  }
+                }
+              },
+              "children": [
+                {
+                  "pathSegment": ":subscriptionId",
+                  "hideFromNav": true,
+                  "context": { "subscriptionId": ":subscriptionId" },
+                  "defineEntity": {
+                    "id": "subscription",
+                    "contextKey": "subscriptionId",
+                    "graphqlEntity": {
+                      "group": "sub.aitrustmt.msp",
+                      "kind": "Subscription",
+                      "query": "{ metadata { name } }",
+                      "version": "v1alpha1"
+                    }
+                  },
+                  "keepSelectedForChildren": false
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aitrust-mt-portal-integration
+  namespace: {{ .Release.Namespace }}
+  labels: { app.kubernetes.io/component: portal-integration }
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: portal-integration
+      app.kubernetes.io/instance: aitrust-mt-portal
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: portal-integration
+        app.kubernetes.io/instance: aitrust-mt-portal
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: nginx
+        image: "{{ .Values.portalIntegration.image.repository }}:{{ .Values.portalIntegration.image.tag }}"
+        imagePullPolicy: {{ .Values.portalIntegration.image.pullPolicy }}
+        ports:
+        - { containerPort: 80, name: http }
+        volumeMounts:
+        - name: portal-config
+          mountPath: /usr/share/nginx/html/pm-content.json
+          subPath: pm-content.json
+      volumes:
+      - name: portal-config
+        configMap:
+          name: aitrust-mt-portal-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aitrust-mt-portal
+  namespace: {{ .Release.Namespace }}
+  labels: { app.kubernetes.io/component: portal-integration }
+spec:
+  selector:
+    app.kubernetes.io/component: portal-integration
+    app.kubernetes.io/instance: aitrust-mt-portal
+  ports:
+  - { name: http, port: 80, targetPort: http }
+{{- end }}

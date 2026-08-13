@@ -1,5 +1,0 @@
-DEP=deployment.apps/aitrust-msp-operator
-deployment.apps/aitrust-msp-operator image updated
-deployment "aitrust-msp-operator" successfully rolled out
-IMAGE_NOW=mirceacraciun795/aitrust-msp-operator:v8
-DONE

@@ -1,3 +1,3 @@
-module aitrust-msp-operator
+module aitrust-mt-operator
 
 go 1.23

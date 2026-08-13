@@ -1,6 +1,7 @@
 #!/bin/bash
-# 1-worker-pool.sh — add a dedicated worker pool for the per-instance app copies (~8-10Gi RAM each,
-# so each Enable ≈ one node). Labelled workload=$MSP_WORKER_LABEL; the operator pins instance pods here.
+# 1-worker-pool.sh — add the dedicated worker pool for the ONE SHARED multi-tenant app + the MT operator
+# (WORKER_TYPE m_c16_m128_v2, ~128Gi — the shared app + all tenants land here). Labelled
+# workload=$MSP_WORKER_LABEL; the shared app (3b) and operator pin their pods here.
 # Idempotent; never creates/deletes a shoot.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"; load_config
@@ -31,4 +32,4 @@ fi
 # (multiple pools may carry that same node label, which would give a false positive here).
 node_ready(){ sk get nodes -l worker.gardener.cloud/pool="$WORKER_POOL" --no-headers 2>/dev/null | grep -q ' Ready '; }
 wait_for 1800 20 "a Ready node in pool $WORKER_POOL" node_ready
-ok "MSP-AiTrust worker node ready"
+ok "ai-trust-mt worker node ready"

@@ -1,4 +1,0 @@
-[36m==>[0m Minting shoot admin kubeconfig for 'ai-trust-1'…
-[31m❌ adminkubeconfig failed (fresh garden login? run prerequisites/login.sh):\nPlease visit the following URL in your browser: http://localhost:8000/
-error: get-token: authentication error: authcode-browser error: authentication error: authorization code flow error: oauth2 error: authorization error: authorization error: context deadline exceeded
-Unable to connect to the server: getting credentials: exec: executable kubectl failed with exit code 1[0m

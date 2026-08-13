@@ -20,7 +20,7 @@ log "Charts lint?"
 helm template x "$HERE/../$AITRUST_APP_CHART" --set kcpKubeconfig.adminContent=FAKE >/dev/null 2>&1 && ok "workload chart templates" || { err "workload chart failed to template"; rc=1; }
 helm template x "$HERE/../$AITRUST_PM_CHART" >/dev/null 2>&1 && ok "pm chart templates" || { err "pm chart failed to template"; rc=1; }
 
-log "Docker login (needed to push the operator image in step 2)?"
-docker info >/dev/null 2>&1 && ok "docker daemon reachable" || warn "docker not reachable — step 2 (build/push) will fail until Docker Desktop is up + logged in"
+log "Docker login (needed to push the operator + MT app images in steps 2/2b)?"
+docker info >/dev/null 2>&1 && ok "docker daemon reachable" || warn "docker not reachable — steps 2/2b (build/push) will fail until Docker Desktop is up + logged in"
 
 [ "$rc" -eq 0 ] && ok "prerequisites OK" || die "prerequisites incomplete — fix ❌ above"

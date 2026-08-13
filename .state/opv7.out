@@ -1,8 +1,0 @@
-[36m==>[0m Minting shoot admin kubeconfig for 'ai-trust-1'…
-[32m✅ shoot kubeconfig → /mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MSP/.state/shoot-kubeconfig.yaml[0m
-DEP=deployment.apps/aitrust-msp-operator
-deployment.apps/aitrust-msp-operator image updated
-deployment "aitrust-msp-operator" successfully rolled out
-IMAGE_NOW=mirceacraciun795/aitrust-msp-operator:v7
-aitrust-msp-operator-c86884d94-vnnzz         1/1     Running   0          5s
-DONE

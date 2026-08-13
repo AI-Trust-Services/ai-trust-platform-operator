@@ -1,0 +1,106 @@
+[36m==>[0m Rendering shared MT app into ns 'aitrust-mt-msp' at https://ai-trust-mt.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu …
+[36m==>[0m Applying namespace + config …
+namespace/aitrust-mt-msp unchanged
+configmap/ch-config unchanged
+configmap/otel-collector-config unchanged
+configmap/pg-init unchanged
+secret/app-secrets configured
+configmap/app-config configured
+[36m==>[0m Applying infra (postgres/clickhouse/minio/rabbitmq/keycloak) + waiting …
+persistentvolumeclaim/postgres-data unchanged
+persistentvolumeclaim/clickhouse-data unchanged
+persistentvolumeclaim/minio-data unchanged
+deployment.apps/postgres unchanged
+service/postgres unchanged
+deployment.apps/rabbitmq unchanged
+service/rabbitmq unchanged
+deployment.apps/minio unchanged
+service/minio unchanged
+deployment.apps/clickhouse unchanged
+service/clickhouse unchanged
+deployment.apps/keycloak configured
+service/keycloak unchanged
+deployment "postgres" successfully rolled out
+Waiting for deployment "keycloak" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "keycloak" rollout to finish: 1 old replicas are pending termination...
+deployment "keycloak" successfully rolled out
+[36m==>[0m Running one-shot jobs (db-migrate/clickhouse-migrate/keycloak-provision/minio-init) …
+job.batch/db-migrate unchanged
+job.batch/clickhouse-migrate unchanged
+job.batch/keycloak-provision created
+job.batch/minio-init unchanged
+[36m==>[0m Applying app backends + frontends + workers + shell + oauth2-proxy …
+service/ai-system-registry-backend unchanged
+service/monitoring-backend unchanged
+service/overview-backend unchanged
+service/alerts-backend unchanged
+service/compliance-backend unchanged
+service/decision-trace-analyzer-backend unchanged
+deployment.apps/users-backend created
+service/users-backend created
+deployment.apps/users-frontend created
+service/users-frontend created
+deployment.apps/ai-system-registry-frontend unchanged
+service/ai-system-registry-frontend unchanged
+deployment.apps/monitoring-frontend unchanged
+service/monitoring-frontend unchanged
+deployment.apps/overview-frontend unchanged
+service/overview-frontend unchanged
+deployment.apps/alerts-frontend unchanged
+service/alerts-frontend unchanged
+deployment.apps/compliance-frontend unchanged
+service/compliance-frontend unchanged
+deployment.apps/decision-trace-analyzer-frontend unchanged
+service/decision-trace-analyzer-frontend unchanged
+deployment.apps/otel-clickhouse-consumer configured
+deployment.apps/otel-rmq-bridge configured
+service/otel-rmq-bridge unchanged
+deployment.apps/otel-collector unchanged
+service/otel-collector unchanged
+deployment.apps/shell unchanged
+service/shell unchanged
+deployment.apps/oauth2-proxy unchanged
+service/oauth2-proxy unchanged
+Error from server (Invalid): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"ai-system-registry-backend\",\"namespace\":\"aitrust-mt-msp\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"ai-system-registry-backend\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"ai-system-registry-backend\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"DATABASE_URL\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"DATABASE_URL\",\"name\":\"app-secrets\"}}},{\"name\":\"ALLOWED_ORIGINS\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"ALLOWED_ORIGINS\",\"name\":\"app-config\"}}},{\"name\":\"ROOT_PATH\",\"value\":\"/api/registry\"},{\"name\":\"OPENFGA_URL\",\"value\":\"http://openfga.platform-mesh-system.svc.cluster.local:8080\"},{\"name\":\"OPENFGA_STORE_ID\",\"value\":\"__OPENFGA_STORE_ID__\"},{\"name\":\"KEYCLOAK_URL\",\"value\":\"http://keycloak:8080/keycloak\"}],\"image\":\"mirceacraciun795/aitrust-ai-system-registry-backend:aitrust-mt\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"ai-system-registry-backend\",\"ports\":[{\"containerPort\":8001}],\"readinessProbe\":{\"exec\":{\"command\":[\"python\",\"healthcheck.py\"]},\"failureThreshold\":6,\"initialDelaySeconds\":10,\"periodSeconds\":10}}]}}}}\n"}},"spec":{"template":{"spec":{"$setElementOrder/containers":[{"name":"ai-system-registry-backend"}],"containers":[{"$setElementOrder/env":[{"name":"DATABASE_URL"},{"name":"ALLOWED_ORIGINS"},{"name":"ROOT_PATH"},{"name":"OPENFGA_URL"},{"name":"OPENFGA_STORE_ID"},{"name":"KEYCLOAK_URL"}],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"key":"DATABASE_URL","name":"app-secrets"}}},{"name":"OPENFGA_URL","value":"http://openfga.platform-mesh-system.svc.cluster.local:8080"},{"name":"OPENFGA_STORE_ID","value":"__OPENFGA_STORE_ID__"},{"name":"KEYCLOAK_URL","value":"http://keycloak:8080/keycloak"}],"name":"ai-system-registry-backend"}]}}}}
+to:
+Resource: "apps/v1, Resource=deployments", GroupVersionKind: "apps/v1, Kind=Deployment"
+Name: "ai-system-registry-backend", Namespace: "aitrust-mt-msp"
+for: "/tmp/tmp.dt2eOcAUu1/30.yaml": error when patching "/tmp/tmp.dt2eOcAUu1/30.yaml": Deployment.apps "ai-system-registry-backend" is invalid: spec.template.spec.containers[0].env[0].valueFrom: Invalid value: "": may not be specified when `value` is not empty
+Error from server (Invalid): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"monitoring-backend\",\"namespace\":\"aitrust-mt-msp\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"monitoring-backend\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"monitoring-backend\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"DATABASE_URL\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"DATABASE_URL\",\"name\":\"app-secrets\"}}},{\"name\":\"ALLOWED_ORIGINS\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"ALLOWED_ORIGINS\",\"name\":\"app-config\"}}},{\"name\":\"ROOT_PATH\",\"value\":\"/api/monitoring\"},{\"name\":\"CLICKHOUSE_HOST\",\"value\":\"clickhouse\"},{\"name\":\"CLICKHOUSE_PORT\",\"value\":\"8123\"},{\"name\":\"CLICKHOUSE_USER\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"CLICKHOUSE_USER\",\"name\":\"app-secrets\"}}},{\"name\":\"CLICKHOUSE_PASSWORD\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"CLICKHOUSE_PASSWORD\",\"name\":\"app-secrets\"}}},{\"name\":\"OPENFGA_URL\",\"value\":\"http://openfga.platform-mesh-system.svc.cluster.local:8080\"},{\"name\":\"OPENFGA_STORE_ID\",\"value\":\"__OPENFGA_STORE_ID__\"},{\"name\":\"KEYCLOAK_URL\",\"value\":\"http://keycloak:8080/keycloak\"}],\"image\":\"mirceacraciun795/aitrust-monitoring-backend:aitrust-mt\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"monitoring-backend\",\"ports\":[{\"containerPort\":8003}],\"readinessProbe\":{\"exec\":{\"command\":[\"python\",\"healthcheck.py\"]},\"failureThreshold\":6,\"initialDelaySeconds\":10,\"periodSeconds\":10}}]}}}}\n"}},"spec":{"template":{"spec":{"$setElementOrder/containers":[{"name":"monitoring-backend"}],"containers":[{"$setElementOrder/env":[{"name":"DATABASE_URL"},{"name":"ALLOWED_ORIGINS"},{"name":"ROOT_PATH"},{"name":"CLICKHOUSE_HOST"},{"name":"CLICKHOUSE_PORT"},{"name":"CLICKHOUSE_USER"},{"name":"CLICKHOUSE_PASSWORD"},{"name":"OPENFGA_URL"},{"name":"OPENFGA_STORE_ID"},{"name":"KEYCLOAK_URL"}],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"key":"DATABASE_URL","name":"app-secrets"}}},{"name":"OPENFGA_URL","value":"http://openfga.platform-mesh-system.svc.cluster.local:8080"},{"name":"OPENFGA_STORE_ID","value":"__OPENFGA_STORE_ID__"},{"name":"KEYCLOAK_URL","value":"http://keycloak:8080/keycloak"}],"name":"monitoring-backend"}]}}}}
+to:
+Resource: "apps/v1, Resource=deployments", GroupVersionKind: "apps/v1, Kind=Deployment"
+Name: "monitoring-backend", Namespace: "aitrust-mt-msp"
+for: "/tmp/tmp.dt2eOcAUu1/30.yaml": error when patching "/tmp/tmp.dt2eOcAUu1/30.yaml": Deployment.apps "monitoring-backend" is invalid: spec.template.spec.containers[0].env[0].valueFrom: Invalid value: "": may not be specified when `value` is not empty
+Error from server (Invalid): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"overview-backend\",\"namespace\":\"aitrust-mt-msp\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"overview-backend\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"overview-backend\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"DATABASE_URL\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"DATABASE_URL\",\"name\":\"app-secrets\"}}},{\"name\":\"ALLOWED_ORIGINS\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"ALLOWED_ORIGINS\",\"name\":\"app-config\"}}},{\"name\":\"ROOT_PATH\",\"value\":\"/api/overview\"},{\"name\":\"OPENFGA_URL\",\"value\":\"http://openfga.platform-mesh-system.svc.cluster.local:8080\"},{\"name\":\"OPENFGA_STORE_ID\",\"value\":\"__OPENFGA_STORE_ID__\"},{\"name\":\"KEYCLOAK_URL\",\"value\":\"http://keycloak:8080/keycloak\"}],\"image\":\"mirceacraciun795/aitrust-overview-backend:aitrust-mt\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"overview-backend\",\"ports\":[{\"containerPort\":8004}],\"readinessProbe\":{\"exec\":{\"command\":[\"python\",\"healthcheck.py\"]},\"failureThreshold\":6,\"initialDelaySeconds\":10,\"periodSeconds\":10}}]}}}}\n"}},"spec":{"template":{"spec":{"$setElementOrder/containers":[{"name":"overview-backend"}],"containers":[{"$setElementOrder/env":[{"name":"DATABASE_URL"},{"name":"ALLOWED_ORIGINS"},{"name":"ROOT_PATH"},{"name":"OPENFGA_URL"},{"name":"OPENFGA_STORE_ID"},{"name":"KEYCLOAK_URL"}],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"key":"DATABASE_URL","name":"app-secrets"}}},{"name":"OPENFGA_URL","value":"http://openfga.platform-mesh-system.svc.cluster.local:8080"},{"name":"OPENFGA_STORE_ID","value":"__OPENFGA_STORE_ID__"},{"name":"KEYCLOAK_URL","value":"http://keycloak:8080/keycloak"}],"name":"overview-backend"}]}}}}
+to:
+Resource: "apps/v1, Resource=deployments", GroupVersionKind: "apps/v1, Kind=Deployment"
+Name: "overview-backend", Namespace: "aitrust-mt-msp"
+for: "/tmp/tmp.dt2eOcAUu1/30.yaml": error when patching "/tmp/tmp.dt2eOcAUu1/30.yaml": Deployment.apps "overview-backend" is invalid: spec.template.spec.containers[0].env[0].valueFrom: Invalid value: "": may not be specified when `value` is not empty
+Error from server (Invalid): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"alerts-backend\",\"namespace\":\"aitrust-mt-msp\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"alerts-backend\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"alerts-backend\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"DATABASE_URL\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"DATABASE_URL\",\"name\":\"app-secrets\"}}},{\"name\":\"ALLOWED_ORIGINS\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"ALLOWED_ORIGINS\",\"name\":\"app-config\"}}},{\"name\":\"ROOT_PATH\",\"value\":\"/api/alerts\"},{\"name\":\"CLICKHOUSE_HOST\",\"value\":\"clickhouse\"},{\"name\":\"CLICKHOUSE_PORT\",\"value\":\"8123\"},{\"name\":\"CLICKHOUSE_USER\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"CLICKHOUSE_USER\",\"name\":\"app-secrets\"}}},{\"name\":\"CLICKHOUSE_PASSWORD\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"CLICKHOUSE_PASSWORD\",\"name\":\"app-secrets\"}}},{\"name\":\"OPENFGA_URL\",\"value\":\"http://openfga.platform-mesh-system.svc.cluster.local:8080\"},{\"name\":\"OPENFGA_STORE_ID\",\"value\":\"__OPENFGA_STORE_ID__\"},{\"name\":\"KEYCLOAK_URL\",\"value\":\"http://keycloak:8080/keycloak\"}],\"image\":\"mirceacraciun795/aitrust-alerts-backend:aitrust-mt\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"alerts-backend\",\"ports\":[{\"containerPort\":8005}],\"readinessProbe\":{\"exec\":{\"command\":[\"python\",\"healthcheck.py\"]},\"failureThreshold\":6,\"initialDelaySeconds\":10,\"periodSeconds\":10}}]}}}}\n"}},"spec":{"template":{"spec":{"$setElementOrder/containers":[{"name":"alerts-backend"}],"containers":[{"$setElementOrder/env":[{"name":"DATABASE_URL"},{"name":"ALLOWED_ORIGINS"},{"name":"ROOT_PATH"},{"name":"CLICKHOUSE_HOST"},{"name":"CLICKHOUSE_PORT"},{"name":"CLICKHOUSE_USER"},{"name":"CLICKHOUSE_PASSWORD"},{"name":"OPENFGA_URL"},{"name":"OPENFGA_STORE_ID"},{"name":"KEYCLOAK_URL"}],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"key":"DATABASE_URL","name":"app-secrets"}}},{"name":"OPENFGA_URL","value":"http://openfga.platform-mesh-system.svc.cluster.local:8080"},{"name":"OPENFGA_STORE_ID","value":"__OPENFGA_STORE_ID__"},{"name":"KEYCLOAK_URL","value":"http://keycloak:8080/keycloak"}],"name":"alerts-backend"}]}}}}
+to:
+Resource: "apps/v1, Resource=deployments", GroupVersionKind: "apps/v1, Kind=Deployment"
+Name: "alerts-backend", Namespace: "aitrust-mt-msp"
+for: "/tmp/tmp.dt2eOcAUu1/30.yaml": error when patching "/tmp/tmp.dt2eOcAUu1/30.yaml": Deployment.apps "alerts-backend" is invalid: spec.template.spec.containers[0].env[0].valueFrom: Invalid value: "": may not be specified when `value` is not empty
+Error from server (Invalid): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"compliance-backend\",\"namespace\":\"aitrust-mt-msp\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"compliance-backend\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"compliance-backend\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"DATABASE_URL\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"DATABASE_URL\",\"name\":\"app-secrets\"}}},{\"name\":\"ALLOWED_ORIGINS\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"ALLOWED_ORIGINS\",\"name\":\"app-config\"}}},{\"name\":\"ROOT_PATH\",\"value\":\"/api/compliance\"},{\"name\":\"MINIO_ENDPOINT\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"MINIO_ENDPOINT\",\"name\":\"app-config\"}}},{\"name\":\"MINIO_PUBLIC_ENDPOINT\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"MINIO_PUBLIC_ENDPOINT\",\"name\":\"app-config\"}}},{\"name\":\"MINIO_ROOT_USER\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"MINIO_ROOT_USER\",\"name\":\"app-secrets\"}}},{\"name\":\"MINIO_ROOT_PASSWORD\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"MINIO_ROOT_PASSWORD\",\"name\":\"app-secrets\"}}},{\"name\":\"MINIO_SECURE\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"MINIO_SECURE\",\"name\":\"app-config\"}}},{\"name\":\"MINIO_REGION\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"MINIO_REGION\",\"name\":\"app-config\"}}},{\"name\":\"OPENFGA_URL\",\"value\":\"http://openfga.platform-mesh-system.svc.cluster.local:8080\"},{\"name\":\"OPENFGA_STORE_ID\",\"value\":\"__OPENFGA_STORE_ID__\"},{\"name\":\"KEYCLOAK_URL\",\"value\":\"http://keycloak:8080/keycloak\"}],\"image\":\"mirceacraciun795/aitrust-compliance-backend:aitrust-mt\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"compliance-backend\",\"ports\":[{\"containerPort\":8007}],\"readinessProbe\":{\"exec\":{\"command\":[\"python\",\"healthcheck.py\"]},\"failureThreshold\":6,\"initialDelaySeconds\":10,\"periodSeconds\":10}}]}}}}\n"}},"spec":{"template":{"spec":{"$setElementOrder/containers":[{"name":"compliance-backend"}],"containers":[{"$setElementOrder/env":[{"name":"DATABASE_URL"},{"name":"ALLOWED_ORIGINS"},{"name":"ROOT_PATH"},{"name":"MINIO_ENDPOINT"},{"name":"MINIO_PUBLIC_ENDPOINT"},{"name":"MINIO_ROOT_USER"},{"name":"MINIO_ROOT_PASSWORD"},{"name":"MINIO_SECURE"},{"name":"MINIO_REGION"},{"name":"OPENFGA_URL"},{"name":"OPENFGA_STORE_ID"},{"name":"KEYCLOAK_URL"}],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"key":"DATABASE_URL","name":"app-secrets"}}},{"name":"OPENFGA_URL","value":"http://openfga.platform-mesh-system.svc.cluster.local:8080"},{"name":"OPENFGA_STORE_ID","value":"__OPENFGA_STORE_ID__"},{"name":"KEYCLOAK_URL","value":"http://keycloak:8080/keycloak"}],"name":"compliance-backend"}]}}}}
+to:
+Resource: "apps/v1, Resource=deployments", GroupVersionKind: "apps/v1, Kind=Deployment"
+Name: "compliance-backend", Namespace: "aitrust-mt-msp"
+for: "/tmp/tmp.dt2eOcAUu1/30.yaml": error when patching "/tmp/tmp.dt2eOcAUu1/30.yaml": Deployment.apps "compliance-backend" is invalid: spec.template.spec.containers[0].env[0].valueFrom: Invalid value: "": may not be specified when `value` is not empty
+Error from server (Invalid): error when applying patch:
+{"metadata":{"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"annotations\":{},\"name\":\"decision-trace-analyzer-backend\",\"namespace\":\"aitrust-mt-msp\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"decision-trace-analyzer-backend\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"decision-trace-analyzer-backend\"}},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"DATABASE_URL\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"DATABASE_URL\",\"name\":\"app-secrets\"}}},{\"name\":\"ALLOWED_ORIGINS\",\"valueFrom\":{\"configMapKeyRef\":{\"key\":\"ALLOWED_ORIGINS\",\"name\":\"app-config\"}}},{\"name\":\"ROOT_PATH\",\"value\":\"/api/dta\"},{\"name\":\"CLICKHOUSE_HOST\",\"value\":\"clickhouse\"},{\"name\":\"CLICKHOUSE_PORT\",\"value\":\"8123\"},{\"name\":\"CLICKHOUSE_USER\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"CLICKHOUSE_USER\",\"name\":\"app-secrets\"}}},{\"name\":\"CLICKHOUSE_PASSWORD\",\"valueFrom\":{\"secretKeyRef\":{\"key\":\"CLICKHOUSE_PASSWORD\",\"name\":\"app-secrets\"}}},{\"name\":\"OPENFGA_URL\",\"value\":\"http://openfga.platform-mesh-system.svc.cluster.local:8080\"},{\"name\":\"OPENFGA_STORE_ID\",\"value\":\"__OPENFGA_STORE_ID__\"},{\"name\":\"KEYCLOAK_URL\",\"value\":\"http://keycloak:8080/keycloak\"}],\"image\":\"mirceacraciun795/aitrust-decision-trace-analyzer-backend:aitrust-mt\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"decision-trace-analyzer-backend\",\"ports\":[{\"containerPort\":8006}],\"readinessProbe\":{\"exec\":{\"command\":[\"python\",\"healthcheck.py\"]},\"failureThreshold\":6,\"initialDelaySeconds\":10,\"periodSeconds\":10}}]}}}}\n"}},"spec":{"template":{"spec":{"$setElementOrder/containers":[{"name":"decision-trace-analyzer-backend"}],"containers":[{"$setElementOrder/env":[{"name":"DATABASE_URL"},{"name":"ALLOWED_ORIGINS"},{"name":"ROOT_PATH"},{"name":"CLICKHOUSE_HOST"},{"name":"CLICKHOUSE_PORT"},{"name":"CLICKHOUSE_USER"},{"name":"CLICKHOUSE_PASSWORD"},{"name":"OPENFGA_URL"},{"name":"OPENFGA_STORE_ID"},{"name":"KEYCLOAK_URL"}],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"key":"DATABASE_URL","name":"app-secrets"}}},{"name":"OPENFGA_URL","value":"http://openfga.platform-mesh-system.svc.cluster.local:8080"},{"name":"OPENFGA_STORE_ID","value":"__OPENFGA_STORE_ID__"},{"name":"KEYCLOAK_URL","value":"http://keycloak:8080/keycloak"}],"name":"decision-trace-analyzer-backend"}]}}}}
+to:
+Resource: "apps/v1, Resource=deployments", GroupVersionKind: "apps/v1, Kind=Deployment"
+Name: "decision-trace-analyzer-backend", Namespace: "aitrust-mt-msp"
+for: "/tmp/tmp.dt2eOcAUu1/30.yaml": error when patching "/tmp/tmp.dt2eOcAUu1/30.yaml": Deployment.apps "decision-trace-analyzer-backend" is invalid: spec.template.spec.containers[0].env[0].valueFrom: Invalid value: "": may not be specified when `value` is not empty
+Error from server (Invalid): error when applying patch:
+{"spec":{"template":{"spec":{"$setElementOrder/containers":[{"name":"policy-checker-worker"}],"containers":[{"$setElementOrder/env":[{"name":"DATABASE_URL"},{"name":"CLICKHOUSE_HOST"},{"name":"CLICKHOUSE_PORT"},{"name":"CLICKHOUSE_USER"},{"name":"CLICKHOUSE_PASSWORD"},{"name":"ALERT_POLL_INTERVAL"}],"env":[{"name":"DATABASE_URL","valueFrom":{"secretKeyRef":{"key":"DATABASE_URL","name":"app-secrets"}}}],"name":"policy-checker-worker"}]}}}}
+to:
+Resource: "apps/v1, Resource=deployments", GroupVersionKind: "apps/v1, Kind=Deployment"
+Name: "policy-checker-worker", Namespace: "aitrust-mt-msp"
+for: "/tmp/tmp.dt2eOcAUu1/40.yaml": error when patching "/tmp/tmp.dt2eOcAUu1/40.yaml": Deployment.apps "policy-checker-worker" is invalid: spec.template.spec.containers[0].env[0].valueFrom: Invalid value: "": may not be specified when `value` is not empty
+REDEPLOY_EXIT=0

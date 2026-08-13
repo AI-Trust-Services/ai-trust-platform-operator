@@ -1,0 +1,13 @@
+[36m==>[0m Updating app git clone (/mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MT_MSP/../ai-trust-platform-git) to main…
+[32m✅ app source = git main @ 394cda9 (has authorization module)[0m
+[36m==>[0m Building MT app images from /mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MT_MSP/../ai-trust-platform-git (PUB=https://ai-trust-mt.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, tag=aitrust-mt)…
+Dockerfile:6
+--------------------
+   4 |     
+   5 |     COPY . .
+   6 | >>> RUN pip install --no-cache-dir -e .
+   7 |     
+   8 |     CMD ["alembic", "-c", "alembic.ini", "upgrade", "head"]
+--------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c pip install --no-cache-dir -e ." did not complete successfully: exit code: 1
+BUILD_EXIT=0
