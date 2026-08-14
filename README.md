@@ -1,5 +1,8 @@
 # AI Trust Platform **MT** (Multi-Tenant) as an MSP Provider on `ai-trust-1`
 
+**Version:** 3 (tag `v0.3`) · **Status:** multi-tenant MSP variant is the content of `main`.
+See [`CHANGELOG.md`](CHANGELOG.md) for what changed; the version string lives in [`VERSION`](VERSION).
+
 Publishes the **AI Trust Platform** app (multi-tenant Stage-A build from `../ai-trust-platform-main`) as a
 **Platform Mesh MSP provider** — the same pattern as the apeirora private-llm / chat-ui showroom providers.
 A customer sees a tile in the portal, clicks **Enable**, and creates a **Subscription** — and gets an
@@ -141,3 +144,8 @@ Standard_AiTrust_MT_MSP/
 - **bind_authenticated** (`apiexport-bind → system:authenticated`) so a portal user can Enable.
 - **ContentConfiguration → in-cluster HTTP Service** (self-signed mesh breaks external-HTTPS CC TLS verify).
 - Tiles are **namespace-scoped** — they render at account → namespace, not the account dashboard.
+
+## Deploy behavior
+- **`imagePullPolicy: Always`** on all app / job / worker containers (and the operator) — deploys always
+  pull the latest build under the current image tag (`aitrust-mt`), so a rebuild pushed under the same tag
+  is picked up on the next pod start rather than serving a node-cached layer.
