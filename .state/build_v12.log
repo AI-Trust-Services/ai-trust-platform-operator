@@ -1,0 +1,7 @@
+27c1204341e5: Waiting
+c19ee79f4435: Waiting
+27c1204341e5: Pushed
+c19ee79f4435: Pushed
+v12: digest: sha256:5e2935419b91dea61fb201f149d38fe1117ee73bdc89161446dc73ee095b38c1 size: 856
+[32m✅ operator image pushed: mirceacraciun795/aitrust-mt-operator:v12[0m
+BUILD_V12_EXIT: 0

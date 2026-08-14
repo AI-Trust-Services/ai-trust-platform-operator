@@ -1,0 +1,140 @@
+# tenant-stores-job.tmpl — one-shot Job the operator stamps per Subscription to provision the tenant's
+# PHYSICAL per-tenant stores across ALL THREE backends. Idempotent + fail-closed: safe to re-run; any
+# step failing leaves the Job (and Subscription) non-Ready.
+#   initContainer wait-pg      : wait for Postgres.
+#   initContainer ch-migrate   : CREATE DATABASE tenant_<org> in ClickHouse + run CH migrations into it
+#                                (clickhouse-migrate image, TARGET_CH_DB). Stage 2.
+#   initContainer minio-bucket : create the per-tenant MinIO bucket tenant-<org> (mc image). Stage 3.
+#   main container provision   : Postgres — alembic upgrade head TARGET_SCHEMA=tenant_<org> (full table
+#                                set + RLS), create per-tenant role t_<org> (schema-only, WITH INHERIT
+#                                FALSE), revoke shared-role direct grants. Stage 1.
+# initContainers run sequentially to completion before the main container, so all three stores are
+# provisioned (or the Job fails) before the operator marks the Subscription Ready.
+#
+# Placeholders: __JOB_NAME__ __NS__ __ORG__ __SCHEMA__ __POOL_LABEL__ __DBMIGRATE_IMAGE__ __APP_ROLE__
+#   __CHMIGRATE_IMAGE__ __CH_DB__ __BUCKET__
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: __NS__
+  labels: { app.kubernetes.io/managed-by: aitrust-mt-operator, org: "__ORG__" }
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 900
+  template:
+    metadata:
+      labels: { app: tenant-stores-provision, org: "__ORG__" }
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector: { workload: __POOL_LABEL__ }
+      tolerations: [{ key: workload, value: __POOL_LABEL__, effect: NoSchedule }]
+      initContainers:
+        - name: wait-pg
+          image: busybox:1.36
+          command: ["sh","-c","until nc -z postgres 5432; do echo waiting-pg; sleep 2; done"]
+        - name: ch-migrate
+          image: __CHMIGRATE_IMAGE__
+          imagePullPolicy: Always
+          env:
+            - { name: CLICKHOUSE_HOST, value: clickhouse }
+            - { name: CLICKHOUSE_PORT, value: "8123" }
+            - { name: CLICKHOUSE_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_USER } } }
+            - { name: CLICKHOUSE_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_PASSWORD } } }
+            # build the FULL CH schema (gen_ai_spans, alert_events, …) inside the tenant's own database
+            - { name: TARGET_CH_DB, value: "__CH_DB__" }
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              echo "provisioning ClickHouse database __CH_DB__ for org __ORG__"
+              python migrate.py
+              echo "done: ClickHouse db __CH_DB__ ready"
+        - name: minio-bucket
+          image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+          env:
+            - { name: MINIO_ROOT_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: MINIO_ROOT_USER } } }
+            - { name: MINIO_ROOT_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: MINIO_ROOT_PASSWORD } } }
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              echo "provisioning MinIO bucket __BUCKET__ for org __ORG__"
+              mc alias set local http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
+              mc mb --ignore-existing local/__BUCKET__
+              echo "done: MinIO bucket __BUCKET__ ready"
+      containers:
+        - name: provision
+          image: __DBMIGRATE_IMAGE__
+          imagePullPolicy: Always
+          env:
+            # OWNER connection (postgres) — creates the schema, builds tables, bypasses RLS for DDL.
+            - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
+            - { name: TARGET_SCHEMA, value: "__SCHEMA__" }
+            - { name: APP_ROLE, value: "__APP_ROLE__" }
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              echo "provisioning Postgres schema $TARGET_SCHEMA for org __ORG__"
+              # 0. create the schema in its OWN committed transaction FIRST. env.py also does
+              #    CREATE SCHEMA IF NOT EXISTS, but that runs inside alembic's migration transaction —
+              #    if anything in that txn rolls back, the schema vanishes. Creating + committing it here
+              #    makes the ordering bulletproof and lets the later GRANT (separate connection) see it.
+              python -c "
+              import asyncio, os
+              from sqlalchemy import text
+              from ai_trust_persistence.database import engine
+              s = os.environ['TARGET_SCHEMA']
+              async def main():
+                  async with engine.begin() as c:
+                      await c.execute(text(f'CREATE SCHEMA IF NOT EXISTS \"{s}\"'))
+                  await engine.dispose()
+              asyncio.run(main())
+              print('schema ensured:', s)
+              "
+              # 1. build the full table set inside TARGET_SCHEMA (env.py sets search_path + version table).
+              alembic -c alembic.ini upgrade head
+              # 2. HARD per-tenant isolation: create a NOLOGIN role that owns access to ONLY this schema,
+              #    grant it schema USAGE + table/sequence DML (+ default privileges), and make the shared
+              #    login role a MEMBER so it can SET ROLE into it per request. The shared role gets NO
+              #    direct grant on the schema — so a search_path/RLS bug still cannot cross tenants
+              #    (Postgres denies: permission denied for schema). Idempotent.
+              python -c "
+              import asyncio, os
+              from sqlalchemy import text
+              from ai_trust_persistence.database import engine
+              s = os.environ['TARGET_SCHEMA']; app = os.environ['APP_ROLE']
+              role = 't_' + s[len('tenant_'):]   # tenant_<x> -> t_<x> (matches libs/tenancy session hook)
+              stmts = [
+                f\"DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='{role}') THEN CREATE ROLE \\\"{role}\\\" NOLOGIN; END IF; END \$\$\",
+                # The shared login role must be NOINHERIT so it gets NO ambient privileges from the
+                # per-tenant roles it belongs to — it must SET ROLE explicitly. (Belt: also set in pg-init.)
+                f'ALTER ROLE {app} NOINHERIT',
+                f'GRANT USAGE ON SCHEMA \"{s}\" TO \"{role}\"',
+                f'GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA \"{s}\" TO \"{role}\"',
+                f'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA \"{s}\" TO \"{role}\"',
+                f'ALTER DEFAULT PRIVILEGES IN SCHEMA \"{s}\" GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO \"{role}\"',
+                f'ALTER DEFAULT PRIVILEGES IN SCHEMA \"{s}\" GRANT USAGE, SELECT ON SEQUENCES TO \"{role}\"',
+                # Membership WITH INHERIT FALSE is load-bearing: in PG16 the grant-level flag overrides the
+                # role-level NOINHERIT and is snapshotted at grant time, so we set it EXPLICITLY (a plain
+                # GRANT issued before NOINHERIT would snapshot inherit_option=true → ambient cross-tenant leak).
+                f'GRANT \"{role}\" TO {app} WITH INHERIT FALSE',
+                # Ensure the shared login role has NO DIRECT privilege on this schema OR its objects
+                # (a prior template version granted ai_trust_app directly; those grants must be stripped
+                # or they bypass the SET-ROLE wall). The ONLY path in is SET ROLE to the per-tenant role.
+                f'REVOKE ALL ON ALL TABLES IN SCHEMA \"{s}\" FROM {app}',
+                f'REVOKE ALL ON ALL SEQUENCES IN SCHEMA \"{s}\" FROM {app}',
+                f'REVOKE ALL ON SCHEMA \"{s}\" FROM {app}',
+                f'ALTER DEFAULT PRIVILEGES IN SCHEMA \"{s}\" REVOKE ALL ON TABLES FROM {app}',
+                f'ALTER DEFAULT PRIVILEGES IN SCHEMA \"{s}\" REVOKE ALL ON SEQUENCES FROM {app}',
+              ]
+              async def main():
+                  async with engine.begin() as c:
+                      for st in stmts: await c.execute(text(st))
+                  await engine.dispose()
+              asyncio.run(main())
+              print('provisioned role', role, 'for schema', s)
+              "
+              echo "done: schema $TARGET_SCHEMA + role ready"

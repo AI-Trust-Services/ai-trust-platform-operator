@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -57,4 +60,81 @@ func itoa(n int) string {
 		n /= 10
 	}
 	return string(b)
+}
+
+// ---- mesh Keycloak realm validation (gate before provisioning) ---------------------
+
+type realmCheck int
+
+const (
+	realmExists realmCheck = iota
+	realmMissing
+	realmUnknown // token/network/5xx/parse — inconclusive; caller must fail-closed (not provision)
+)
+
+// kcAdminToken gets an admin access token from the mesh Keycloak (master realm), mirroring the
+// token flow used by manifests/keycloak-client-job.tmpl. kcBase is e.g.
+// http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak
+func kcAdminToken(ctx context.Context, kcBase, user, pass string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	form := url.Values{
+		"grant_type": {"password"},
+		"client_id":  {"admin-cli"},
+		"username":   {user},
+		"password":   {pass},
+	}
+	endpoint := strings.TrimRight(kcBase, "/") + "/realms/master/protocol/openid-connect/token"
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(form.Encode()))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		_, _ = io.Copy(io.Discard, resp.Body)
+		return "", fmt.Errorf("keycloak admin token http %d", resp.StatusCode)
+	}
+	var out struct {
+		AccessToken string `json:"access_token"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return "", err
+	}
+	if out.AccessToken == "" {
+		return "", fmt.Errorf("keycloak admin token empty")
+	}
+	return out.AccessToken, nil
+}
+
+// checkRealmExists returns whether the mesh Keycloak realm <org> exists. Fail-closed: any
+// inconclusive result (transport error, 5xx, unexpected status) → realmUnknown, and the caller
+// must NOT provision on realmUnknown.
+func checkRealmExists(ctx context.Context, kcBase, token, org string) realmCheck {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	endpoint := strings.TrimRight(kcBase, "/") + "/admin/realms/" + url.PathEscape(org)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return realmUnknown
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return realmUnknown
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, resp.Body)
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return realmExists
+	case http.StatusNotFound:
+		return realmMissing
+	default:
+		return realmUnknown
+	}
 }

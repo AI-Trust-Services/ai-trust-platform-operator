@@ -43,8 +43,7 @@ data:
                       "fields": [
                         { "label": "Name", "property": "metadata.name", "required": true },
                         { "label": "Display Name", "property": "spec.displayName", "required": true },
-                        { "label": "Org (mesh realm)", "property": "spec.org", "required": true },
-                        { "label": "Plan", "property": "spec.plan", "values": ["standard", "enterprise"], "defaultValue": "standard" },
+                        { "label": "Organization (mesh realm — auth realm; one subscription per org)", "property": "spec.org", "required": true },
                         { "label": "Admin Email", "property": "spec.adminEmail" }
                       ]
                     },

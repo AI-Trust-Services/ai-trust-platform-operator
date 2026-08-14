@@ -35,6 +35,10 @@ spec:
             - --redeem-url=__KC_INTERNAL_REALM__/protocol/openid-connect/token
             - --oidc-jwks-url=__KC_INTERNAL_REALM__/protocol/openid-connect/certs
             - --skip-oidc-discovery=true
+            # auto-redirect unauthenticated browser hits straight to Keycloak login instead of showing
+            # oauth2-proxy's own sign-in-button page (403 HTML). Without this, after logout the app just
+            # sees 403s and never bounces to login.
+            - --skip-provider-button=true
             - --insecure-oidc-skip-issuer-verification=true
             - --insecure-oidc-allow-unverified-email=true
             - --redirect-url=https://__ORG_HOST__/oauth2/callback
@@ -46,7 +50,12 @@ spec:
             - --email-domain=*
             - --pass-authorization-header=true
             - --pass-access-token=true
-            - --backend-logout-url=__KC_PUBLIC_REALM__/protocol/openid-connect/logout
+            - --backend-logout-url=__KC_PUBLIC_REALM__/protocol/openid-connect/logout?id_token_hint={id_token}
+            # allow /oauth2/sign_out?rd=<keycloak logout URL> to redirect the browser to the Keycloak
+            # end-session endpoint (front-channel logout — ends the SSO cookie, not just the proxy cookie).
+            # The leading-dot form whitelists the apex AND all subdomains under it (tenant host + keycloak host).
+            - --whitelist-domain=__WHITELIST_DOMAIN__
+            - --whitelist-domain=*.__WHITELIST_DOMAIN__
           env:
             - { name: CLIENT_SECRET, valueFrom: { secretKeyRef: { name: __SECRET_NAME__, key: __SECRET_KEY__ } } }
           ports: [{ containerPort: 4180 }]

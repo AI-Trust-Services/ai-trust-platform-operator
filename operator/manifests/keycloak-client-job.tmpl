@@ -49,16 +49,13 @@ spec:
                 sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
               [ -n "$TOK" ] || { echo "admin token failed"; exit 1; }
               AUTH="Authorization: Bearer $TOK"
-              # already exists?
-              EXIST=$(curl -s -H "$AUTH" "$KC/admin/realms/$ORG/clients?clientId=$CLIENT_ID" | grep -o '"id"' | head -1)
-              if [ -n "$EXIST" ]; then
-                echo "client $CLIENT_ID already exists in $ORG — ensuring secret"
-              else
-                curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
-                  "$KC/admin/realms/$ORG/clients" -d "{
+              # client body shared by create (POST) and update (PUT). postLogoutRedirectUris lets Keycloak
+              # accept the post-logout redirect back to the tenant host (required for oauth2-proxy sign_out).
+              BODY="{
                     \"clientId\":\"$CLIENT_ID\",\"enabled\":true,\"protocol\":\"openid-connect\",
                     \"publicClient\":false,\"standardFlowEnabled\":true,\"directAccessGrantsEnabled\":false,
                     \"secret\":\"$CLIENT_SECRET\",\"redirectUris\":[\"$CB\"],\"webOrigins\":[\"$ORIGIN\"],
+                    \"attributes\":{\"post.logout.redirect.uris\":\"$ORIGIN##$ORIGIN/*\"},
                     \"fullScopeAllowed\":true,
                     \"protocolMappers\":[{
                       \"name\":\"tenant_id\",\"protocol\":\"openid-connect\",
@@ -68,6 +65,21 @@ spec:
                         \"access.token.claim\":\"true\",\"userinfo.token.claim\":\"true\"}
                     }]
                   }"
+              # already exists? (fetch its internal id — grep -oE is non-greedy per match, unlike a
+              # greedy sed .* which would grab a nested protocolMapper "id" from compact JSON)
+              ID=$(curl -s -H "$AUTH" "$KC/admin/realms/$ORG/clients?clientId=$CLIENT_ID" | \
+                grep -oE '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"//')
+              if [ -n "$ID" ]; then
+                echo "client $CLIENT_ID exists in $ORG (id=$ID) — updating (post-logout redirect + secret)"
+                HTTP=$(curl -s -o /tmp/put.out -w '%{http_code}' -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$ORG/clients/$ID" -d "$BODY")
+                if [ "$HTTP" != "204" ] && [ "$HTTP" != "200" ]; then
+                  echo "PUT update failed (http $HTTP): $(cat /tmp/put.out)"; exit 1
+                fi
+                echo "updated client $CLIENT_ID in $ORG (http $HTTP)"
+              else
+                curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$ORG/clients" -d "$BODY"
                 echo "created client $CLIENT_ID in $ORG (tenant_id=$ORG mapper)"
               fi
               echo "done"

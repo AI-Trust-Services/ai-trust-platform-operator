@@ -1,13 +1,29 @@
-[36m==>[0m Updating app git clone (/mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MT_MSP/../ai-trust-platform-git) to main…
-[32m✅ app source = git main @ 394cda9 (has authorization module)[0m
+=== building from mircea-mt2 @ 26614a9 ===
+[32m✅ app source = git main @ 26614a9 (has authorization module)[0m
 [36m==>[0m Building MT app images from /mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MT_MSP/../ai-trust-platform-git (PUB=https://ai-trust-mt.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu, tag=aitrust-mt)…
-Dockerfile:6
---------------------
-   4 |     
-   5 |     COPY . .
-   6 | >>> RUN pip install --no-cache-dir -e .
-   7 |     
-   8 |     CMD ["alembic", "-c", "alembic.ini", "upgrade", "head"]
---------------------
-ERROR: failed to build: failed to solve: process "/bin/sh -c pip install --no-cache-dir -e ." did not complete successfully: exit code: 1
-BUILD_EXIT=0
+[32m✅ images built[0m
+[36m==>[0m Retag + push to mirceacraciun795:aitrust-mt…
+  pushed mirceacraciun795/aitrust-ai-system-registry-backend:aitrust-mt
+  pushed mirceacraciun795/aitrust-monitoring-backend:aitrust-mt
+  pushed mirceacraciun795/aitrust-overview-backend:aitrust-mt
+  pushed mirceacraciun795/aitrust-alerts-backend:aitrust-mt
+  pushed mirceacraciun795/aitrust-compliance-backend:aitrust-mt
+  pushed mirceacraciun795/aitrust-decision-trace-analyzer-backend:aitrust-mt
+  pushed mirceacraciun795/aitrust-users-backend:aitrust-mt
+  pushed mirceacraciun795/aitrust-ai-system-registry-frontend:aitrust-mt
+  pushed mirceacraciun795/aitrust-monitoring-frontend:aitrust-mt
+  pushed mirceacraciun795/aitrust-overview-frontend:aitrust-mt
+  pushed mirceacraciun795/aitrust-alerts-frontend:aitrust-mt
+  pushed mirceacraciun795/aitrust-compliance-frontend:aitrust-mt
+  pushed mirceacraciun795/aitrust-decision-trace-analyzer-frontend:aitrust-mt
+  pushed mirceacraciun795/aitrust-users-frontend:aitrust-mt
+  pushed mirceacraciun795/aitrust-db-migrate:aitrust-mt
+  pushed mirceacraciun795/aitrust-clickhouse-migrate:aitrust-mt
+  pushed mirceacraciun795/aitrust-keycloak-provision:aitrust-mt
+  pushed mirceacraciun795/aitrust-openfga-provision:aitrust-mt
+  pushed mirceacraciun795/aitrust-policy-checker-worker:aitrust-mt
+  pushed mirceacraciun795/aitrust-clickhouse-consumer:aitrust-mt
+  pushed mirceacraciun795/aitrust-rmq-bridge:aitrust-mt
+  pushed mirceacraciun795/aitrust-shell:aitrust-mt
+[32m✅ all MT app images pushed to mirceacraciun795 (tag aitrust-mt) from git @ 26614a9 — incl users (IAM) + openfga-provision (roles)[0m
+=== BUILD SCRIPT EXIT: 0 ===

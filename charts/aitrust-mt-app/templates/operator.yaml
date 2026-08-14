@@ -91,6 +91,11 @@ spec:
         # so the per-org kc-client Job can auth to the mesh Keycloak Admin API — no manual copy on fresh deploys.
         - { name: MESH_KC_ADMIN_NS, value: "{{ .Values.operator.gatewayNamespace }}" }
         - { name: MESH_KC_ADMIN_SECRET, value: "{{ .Values.operator.meshKcAdminSecret }}" }
+        # per-tenant Postgres schema provisioning (schema-per-tenant): the db-migrate image the operator's
+        # tenant-stores Job runs (alembic upgrade head with TARGET_SCHEMA), and the runtime role it grants.
+        - { name: DBMIGRATE_IMAGE, value: "{{ .Values.operator.dbMigrateImage }}" }
+        - { name: CHMIGRATE_IMAGE, value: "{{ .Values.operator.chMigrateImage }}" }
+        - { name: APP_DB_ROLE, value: "{{ .Values.operator.appDbRole }}" }
         resources:
           requests: { cpu: 50m, memory: 64Mi }
           limits: { cpu: 500m, memory: 256Mi }

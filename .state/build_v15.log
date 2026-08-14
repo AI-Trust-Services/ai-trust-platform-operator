@@ -1,0 +1,23 @@
+=== 1) undo manual probe roles + re-grant ai_trust_app so operator re-provisions cleanly ===
+DROP OWNED
+DROP ROLE
+DROP OWNED
+DROP ROLE
+=== 2) delete tenant-stores jobs so v15 re-stamps with role model ===
+job.batch "tenant-stores-livedemo" deleted from aitrust-mt-msp namespace
+job.batch "tenant-stores-mirceatest" deleted from aitrust-mt-msp namespace
+job.batch "tenant-stores-mttest2" deleted from aitrust-mt-msp namespace
+job.batch "tenant-stores-sohan" deleted from aitrust-mt-msp namespace
+=== 3) build+push all app images (session.py change hits all backends) from mircea-mt2 HEAD ===
+  pushed mirceacraciun795/aitrust-openfga-provision:aitrust-mt
+  pushed mirceacraciun795/aitrust-policy-checker-worker:aitrust-mt
+  pushed mirceacraciun795/aitrust-clickhouse-consumer:aitrust-mt
+  pushed mirceacraciun795/aitrust-rmq-bridge:aitrust-mt
+  pushed mirceacraciun795/aitrust-shell:aitrust-mt
+[32m✅ all MT app images pushed to mirceacraciun795 (tag aitrust-mt) from git @ 4a1c8c8 — incl users (IAM) + openfga-provision (roles)[0m
+APPS_EXIT: 0
+=== 4) build+push operator v15 ===
+7026e052becc: Pushed
+v15: digest: sha256:7071df4c01a135f54fc2cd6c6abe056c45a1acce06995e14bf8958759950af66 size: 856
+[32m✅ operator image pushed: mirceacraciun795/aitrust-mt-operator:v15[0m
+OP_EXIT: 0

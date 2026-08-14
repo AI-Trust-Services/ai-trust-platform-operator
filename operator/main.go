@@ -1,6 +1,6 @@
 package main
 
-// aitrust-mt-operator (v5) — watches Subscription CRs and onboards each customer ORG as a TENANT of the
+// aitrust-mt-operator (v6) — watches Subscription CRs and onboards each customer ORG as a TENANT of the
 // ONE SHARED "AI Trust Platform MT" app. It does NOT stamp an app copy. Per Subscription it:
 //   1. resolves the org (spec.org == the org's Platform-Mesh account == its mesh Keycloak realm name),
 //   2. ensures a per-org secret (oauth2-proxy client secret + cookie secret),
@@ -67,6 +67,9 @@ type config struct {
 	storeID        string // the ONE shared app store id (roles seeded at deploy)
 	meshAdminNS    string // ns holding the mesh keycloak bootstrap-admin secret
 	meshAdminName  string // name of that secret (keys: username/password)
+	dbMigrateImage string // image (alembic + ai_trust_persistence) used to provision per-tenant schemas
+	chMigrateImage string // image (clickhouse-migrate) used to provision per-tenant ClickHouse databases
+	appRole        string // the non-superuser runtime Postgres role granted on each tenant schema
 }
 
 func cfg() config {
@@ -83,6 +86,9 @@ func cfg() config {
 		storeID:        env("OPENFGA_STORE_ID", ""),
 		meshAdminNS:    env("MESH_KC_ADMIN_NS", "platform-mesh-system"),
 		meshAdminName:  env("MESH_KC_ADMIN_SECRET", "keycloak-admin"),
+		dbMigrateImage: env("DBMIGRATE_IMAGE", "mirceacraciun795/aitrust-db-migrate:aitrust-mt"),
+		chMigrateImage: env("CHMIGRATE_IMAGE", "mirceacraciun795/aitrust-clickhouse-migrate:aitrust-mt"),
+		appRole:        env("APP_DB_ROLE", "ai_trust_app"),
 	}
 }
 
@@ -103,13 +109,12 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	display := strOr(spec["displayName"], "AI Trust Platform MT")
 	adminEmail := strOr(spec["adminEmail"], "")
 
-	// org == the mesh account/realm. spec.org is authoritative; fall back to the mirror namespace
-	// (consumer cluster id) only so the CR still reconciles — but that is NOT a real realm, so auth
-	// won't work until spec.org is set. tenant_id (for RLS) == org.
-	org := dnsSafe(strOr(spec["org"], ""))
-	if org == "" {
-		org = dnsSafe(cr.GetNamespace())
-	}
+	// org == the mesh account/realm. spec.org is authoritative and MUST name a realm that exists
+	// in the mesh Keycloak (validated below). Trim whitespace BEFORE dnsSafe (dnsSafe turns an
+	// internal space into '-', which would corrupt the realm name). No cluster-id fallback: the
+	// consumer cluster id is never a real realm, so an empty org can only Degrade.
+	rawOrg := strings.TrimSpace(strOr(spec["org"], ""))
+	org := dnsSafe(rawOrg)
 	tenantID := org
 	orgHost := "ai-trust-mt-" + org + "." + r.cfg.domainSuffix
 	url := "https://" + orgHost
@@ -131,10 +136,86 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		}
 	}
 
-	if strOr(spec["org"], "") == "" {
+	if rawOrg == "" {
 		r.setPhase(ctx, cr, "Degraded", false, url, tenantID, org,
 			"spec.org is empty — set it to the consumer org / mesh realm name so auth can be wired")
 		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	// ---- GUARD: one subscription per organization. The tenant host/URL and realm are BOTH derived
+	//      from org (orgHost above), so two Subscriptions naming the same org would collide on the same
+	//      host + tenant data. Policy is one-tenant-per-org, so a duplicate is rejected here (fail-closed,
+	//      stamp nothing) rather than clobbering the existing tenant. Deterministic owner = the OLDEST
+	//      active (non-deleting) Subscription for that org (by creationTimestamp, uid tie-break), so the
+	//      choice is stable across restarts/re-reconciles and a Ready sub never Degrades itself.
+	if owner := r.orgOwner(ctx, org, cr); owner != nil {
+		ons, _, _ := unstructured.NestedString(owner.Object, "metadata", "namespace")
+		oname, _, _ := unstructured.NestedString(owner.Object, "metadata", "name")
+		l.Info("duplicate org — another subscription already owns this org; refusing to provision",
+			"org", org, "owner", ons+"/"+oname)
+		r.setPhase(ctx, cr, "Degraded", false, url, tenantID, org,
+			fmt.Sprintf("Only one subscription is allowed per organization. Org '%s' already has an active "+
+				"subscription ('%s/%s' at %s). Use the existing subscription, or delete it before creating a new one.",
+				org, ons, oname, url))
+		return ctrl.Result{RequeueAfter: 60 * time.Second}, nil
+	}
+
+	// ---- 0. GATE: the mesh Keycloak realm named <org> MUST exist before we stamp any auth
+	//      resources. Otherwise a phantom org (e.g. "berlin") would get a login proxy pointing at
+	//      a realm that doesn't exist → broken login. Fail-closed: on an inconclusive check we do
+	//      NOT provision. Uses the mesh admin creds the operator already has access to.
+	adminUser, adminPass, err := r.readMeshAdminCreds(ctx)
+	if err != nil {
+		return r.fail(ctx, cr, url, tenantID, org, "read mesh admin creds for realm check", err)
+	}
+	tok, err := kcAdminToken(ctx, r.cfg.kcInternal, adminUser, adminPass)
+	if err != nil {
+		// inconclusive (mesh KC unreachable / bad creds) — fail-closed, retry, stamp nothing.
+		l.Info("realm check: admin token failed — not provisioning, will retry", "org", org, "err", err.Error())
+		r.setPhase(ctx, cr, "Degraded", false, url, tenantID, org,
+			fmt.Sprintf("could not verify Keycloak realm '%s' in the mesh (transient) — retrying", org))
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+	switch checkRealmExists(ctx, r.cfg.kcInternal, tok, org) {
+	case realmMissing:
+		l.Info("org has no mesh Keycloak realm — refusing to provision (no login proxy stamped)", "org", org)
+		r.setPhase(ctx, cr, "Degraded", false, url, tenantID, org,
+			fmt.Sprintf("org '%s' has no Keycloak realm in the mesh — onboard the org first, or fix spec.org", org))
+		return ctrl.Result{RequeueAfter: 2 * time.Minute}, nil
+	case realmUnknown:
+		l.Info("realm existence check inconclusive — not provisioning, will retry", "org", org)
+		r.setPhase(ctx, cr, "Degraded", false, url, tenantID, org,
+			fmt.Sprintf("could not verify Keycloak realm '%s' in the mesh (transient) — retrying", org))
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	case realmExists:
+		// fall through to provisioning
+	}
+
+	// ---- 0b. PER-TENANT STORES (physical isolation across Postgres + ClickHouse + MinIO) --------
+	// Provision the tenant's own Postgres schema `tenant_<org>`, ClickHouse database `tenant_<org>`,
+	// and MinIO bucket `tenant-<org>` (hyphens→underscores for PG/CH identifiers; hyphens for the S3
+	// bucket) via ONE Job (CH+MinIO as init containers, PG as the main container). GATE Ready on the
+	// Job succeeding, so the tenant host is never advertised before its stores exist (fail-closed:
+	// the Subscription sits in Provisioning until then). Idempotent throughout.
+	schemaName := "tenant_" + strings.ReplaceAll(org, "-", "_") // PG schema + CH database
+	bucketName := "tenant-" + strings.ToLower(strings.ReplaceAll(org, "_", "-")) // S3 bucket (DNS-safe)
+	storesJob := dnsSafe("tenant-stores-" + org)
+	if !r.jobExists(ctx, r.cfg.providerNS, storesJob) {
+		doc := r.render("tenant-stores-job.tmpl", map[string]string{
+			"__JOB_NAME__": storesJob, "__NS__": r.cfg.providerNS, "__ORG__": org,
+			"__SCHEMA__": schemaName, "__POOL_LABEL__": r.cfg.poolLabel,
+			"__DBMIGRATE_IMAGE__": r.cfg.dbMigrateImage, "__APP_ROLE__": r.cfg.appRole,
+			"__CHMIGRATE_IMAGE__": r.cfg.chMigrateImage, "__CH_DB__": schemaName, "__BUCKET__": bucketName,
+		})
+		if err := r.applyDoc(ctx, doc); err != nil {
+			return r.fail(ctx, cr, url, tenantID, org, "stamp tenant-stores job", err)
+		}
+	}
+	if !r.jobSucceeded(ctx, r.cfg.providerNS, storesJob) {
+		l.Info("waiting for per-tenant Postgres schema provisioning", "org", org, "schema", schemaName)
+		r.setPhase(ctx, cr, "Provisioning", false, url, tenantID, org,
+			fmt.Sprintf("provisioning tenant store (Postgres schema '%s') — not ready yet", schemaName))
+		return ctrl.Result{RequeueAfter: 15 * time.Second}, nil
 	}
 
 	// ---- 1. per-org secret (client secret + cookie secret) ---------------------
@@ -169,6 +250,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		"__ORG__": org, "__NS__": r.cfg.providerNS, "__ORG_HOST__": orgHost,
 		"__KC_INTERNAL_REALM__": r.cfg.kcInternal + "/realms/" + org,
 		"__KC_PUBLIC_REALM__":   r.cfg.kcPublic + "/realms/" + org,
+		"__WHITELIST_DOMAIN__":  r.cfg.domainSuffix,
 		"__SECRET_NAME__":       secretName, "__SECRET_KEY__": "client-secret",
 		"__COOKIE_SECRET__": cookieSecret,
 		"__GATEWAY_NS__":    r.cfg.gatewayNS, "__GATEWAY_NAME__": r.cfg.gatewayName,
@@ -247,6 +329,24 @@ func (r *reconciler) ensureMeshAdminSecret(ctx context.Context) error {
 	return r.Create(ctx, copySecret)
 }
 
+// readMeshAdminCreds reads the mesh Keycloak bootstrap-admin username/password directly from the
+// SOURCE secret (meshAdminNS/meshAdminName). Used by the realm-existence gate — independent of the
+// copy step, so a phantom org is rejected before anything is stamped.
+func (r *reconciler) readMeshAdminCreds(ctx context.Context) (user, pass string, err error) {
+	src := &unstructured.Unstructured{}
+	src.SetGroupVersionKind(schema.GroupVersionKind{Version: "v1", Kind: "Secret"})
+	if err = r.Get(ctx, types.NamespacedName{Namespace: r.cfg.meshAdminNS, Name: r.cfg.meshAdminName}, src); err != nil {
+		return "", "", fmt.Errorf("read mesh admin secret %s/%s: %w", r.cfg.meshAdminNS, r.cfg.meshAdminName, err)
+	}
+	data, _, _ := unstructured.NestedMap(src.Object, "data")
+	user = decodeB64(strFrom(data["username"]))
+	pass = decodeB64(strFrom(data["password"]))
+	if user == "" || pass == "" {
+		return "", "", fmt.Errorf("mesh admin secret %s/%s missing username/password", r.cfg.meshAdminNS, r.cfg.meshAdminName)
+	}
+	return user, pass, nil
+}
+
 // seedAdminTuple writes user:<email> → member → role:platform_administrator to the shared OpenFGA store.
 func (r *reconciler) seedAdminTuple(ctx context.Context, email string) error {
 	body := fmt.Sprintf(`{"writes":{"tuple_keys":[{"user":"user:%s","relation":"member","object":"role:platform_administrator"}]}}`, email)
@@ -301,6 +401,18 @@ func (r *reconciler) jobExists(ctx context.Context, ns, name string) bool {
 	return r.Get(ctx, types.NamespacedName{Namespace: ns, Name: name}, j) == nil
 }
 
+// jobSucceeded reports whether the named Job has completed successfully (status.succeeded > 0).
+// Used to gate a Subscription's Ready state on its per-tenant store provisioning finishing first.
+func (r *reconciler) jobSucceeded(ctx context.Context, ns, name string) bool {
+	j := &unstructured.Unstructured{}
+	j.SetGroupVersionKind(schema.GroupVersionKind{Group: "batch", Version: "v1", Kind: "Job"})
+	if err := r.Get(ctx, types.NamespacedName{Namespace: ns, Name: name}, j); err != nil {
+		return false
+	}
+	succeeded, _, _ := unstructured.NestedInt64(j.Object, "status", "succeeded")
+	return succeeded > 0
+}
+
 // ---------- status -------------------------------------------------------------
 
 func (r *reconciler) setPhase(ctx context.Context, cr *unstructured.Unstructured, phase string, ready bool, url, tenantID, realm, msg string) {
@@ -327,6 +439,47 @@ func (r *reconciler) fail(ctx context.Context, cr *unstructured.Unstructured, ur
 	log.FromContext(ctx).Error(err, "reconcile step failed", "step", step)
 	r.setPhase(ctx, cr, "Degraded", false, url, tenantID, realm, fmt.Sprintf("%s: %v", step, err))
 	return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+}
+
+// orgOwner enforces one-subscription-per-org. It returns the Subscription that rightfully OWNS `org`
+// when that owner is someone OTHER than `self` (→ caller must Degrade `self` as a duplicate); it returns
+// nil when `self` is the rightful owner (or the sole/oldest active sub for the org) → caller proceeds.
+//
+// Owner = the OLDEST active (non-deleting) Subscription whose normalized spec.org == `org`, by
+// metadata.creationTimestamp (RFC3339 UTC strings sort chronologically), uid as a stable tie-break.
+// Using oldest-wins (not first-reconciled) keeps the active tenant stable across operator restarts and
+// avoids flapping; self-exclusion by uid ensures a Ready sub never Degrades itself on re-reconcile.
+func (r *reconciler) orgOwner(ctx context.Context, org string, self *unstructured.Unstructured) *unstructured.Unstructured {
+	list := &unstructured.UnstructuredList{}
+	list.SetGroupVersionKind(schema.GroupVersionKind{Group: gvk.Group, Version: gvk.Version, Kind: gvk.Kind + "List"})
+	if err := r.List(ctx, list); err != nil {
+		// Can't verify uniqueness — fail-closed would block ALL provisioning on a transient list error,
+		// so instead we log and let the caller proceed (the realm gate + idempotent stamping still apply).
+		log.FromContext(ctx).Error(err, "orgOwner: list subscriptions failed — skipping duplicate check")
+		return nil
+	}
+	selfUID := string(self.GetUID())
+	var owner *unstructured.Unstructured
+	var ownerTS, ownerUID string
+	for i := range list.Items {
+		it := &list.Items[i]
+		if !it.GetDeletionTimestamp().IsZero() {
+			continue // being deleted — releases the org
+		}
+		sp, _, _ := unstructured.NestedMap(it.Object, "spec")
+		if dnsSafe(strings.TrimSpace(strOr(sp["org"], ""))) != org {
+			continue
+		}
+		ts := it.GetCreationTimestamp().UTC().Format(time.RFC3339Nano)
+		uid := string(it.GetUID())
+		if owner == nil || ts < ownerTS || (ts == ownerTS && uid < ownerUID) {
+			owner, ownerTS, ownerUID = it, ts, uid
+		}
+	}
+	if owner == nil || ownerUID == selfUID {
+		return nil // self is the owner (or no active sub for this org yet)
+	}
+	return owner
 }
 
 // ---------- utils --------------------------------------------------------------
@@ -416,7 +569,7 @@ func main() {
 	if err := builder.ControllerManagedBy(mgr).For(proto).Complete(&reconciler{Client: mgr.GetClient(), cfg: c}); err != nil {
 		panic(err)
 	}
-	log.Log.Info("aitrust-mt-operator v5 starting", "providerNS", c.providerNS, "domainSuffix", c.domainSuffix,
+	log.Log.Info("aitrust-mt-operator v18 starting", "providerNS", c.providerNS, "domainSuffix", c.domainSuffix,
 		"gateway", c.gatewayName, "storeID", c.storeID != "")
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		panic(err)

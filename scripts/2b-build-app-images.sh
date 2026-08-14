@@ -55,7 +55,7 @@ if [ "$SKIP_BUILD" -eq 0 ]; then
   docker build -q -t aitrust/alerts-frontend:build --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts ./alerts/frontend >/dev/null
   docker build -q -t aitrust/compliance-frontend:build --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 --build-arg VITE_REGISTRY_API_BASE=/api/registry/v1 ./compliance/frontend >/dev/null
   docker build -q -t aitrust/decision-trace-analyzer-frontend:build --build-arg VITE_DTA_API_BASE=/api/dta/v1 ./decision-trace-analyzer/frontend >/dev/null
-  docker build -q -t aitrust/overview-frontend:build --build-arg VITE_OVERVIEW_API_BASE=/api/overview/v1 --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts --build-arg VITE_REGISTRY_URL=$PUB/registry --build-arg VITE_COMPLIANCE_URL=$PUB/compliance --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 ./overview/frontend >/dev/null
+  docker build -q -t aitrust/overview-frontend:build --build-arg VITE_OVERVIEW_API_BASE=/api/overview/v1 --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts --build-arg VITE_REGISTRY_URL=$PUB/registry --build-arg VITE_COMPLIANCE_URL=$PUB/compliance --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 --build-arg VITE_USERS_API_BASE=/api/users/v1 ./overview/frontend >/dev/null
   docker build -q -t aitrust/users-frontend:build --build-arg VITE_USERS_API_BASE=/api/users/v1 ./users/frontend >/dev/null
   ok "images built"
 fi

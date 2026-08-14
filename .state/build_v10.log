@@ -1,0 +1,10 @@
+===== 1) operator v10 (whitelist-domain + front-channel support) =====
+c52f6bcfa0de: Pushed
+v10: digest: sha256:63ee8c48fb0a903e9549c1d65456faaa4c59666b26209a0e26d28c3737595cc8 size: 856
+[32m✅ operator image pushed: mirceacraciun795/aitrust-mt-operator:v10[0m
+OP_EXIT: 0
+===== 2) shell image (front-channel logout href) =====
+  built shell
+docker.io/mirceacraciun795/aitrust-shell:aitrust-mt
+  pushed mirceacraciun795/aitrust-shell:aitrust-mt
+ALLDONE_V10

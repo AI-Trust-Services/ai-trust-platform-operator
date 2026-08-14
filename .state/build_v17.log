@@ -1,0 +1,15 @@
+=== build+push ALL app images (CH lib/consumer + minio changes span many images) from mircea-mt2 HEAD ===
+  pushed mirceacraciun795/aitrust-clickhouse-migrate:aitrust-mt
+  pushed mirceacraciun795/aitrust-keycloak-provision:aitrust-mt
+  pushed mirceacraciun795/aitrust-openfga-provision:aitrust-mt
+  pushed mirceacraciun795/aitrust-policy-checker-worker:aitrust-mt
+  pushed mirceacraciun795/aitrust-clickhouse-consumer:aitrust-mt
+  pushed mirceacraciun795/aitrust-rmq-bridge:aitrust-mt
+  pushed mirceacraciun795/aitrust-shell:aitrust-mt
+[32m✅ all MT app images pushed to mirceacraciun795 (tag aitrust-mt) from git @ 4a1c8c8 — incl users (IAM) + openfga-provision (roles)[0m
+APPS_EXIT: 0
+=== build+push operator v17 ===
+536e7c59a9f6: Pushed
+v17: digest: sha256:46a94d66bccc8349f3537dcf4241839e2e51ea4df9067318da7f8b765629de3e size: 856
+[32m✅ operator image pushed: mirceacraciun795/aitrust-mt-operator:v17[0m
+OP_EXIT: 0

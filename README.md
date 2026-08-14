@@ -1,6 +1,6 @@
 # AI Trust Platform **MT** (Multi-Tenant) as an MSP Provider on `ai-trust-1`
 
-**Version:** 3 (tag `v0.3`) · **Status:** multi-tenant MSP variant is the content of `main`.
+**Version:** 4 (tag `v0.4`) · **Status:** multi-tenant MSP variant is the content of `main`.
 See [`CHANGELOG.md`](CHANGELOG.md) for what changed; the version string lives in [`VERSION`](VERSION).
 
 Publishes the **AI Trust Platform** app (multi-tenant Stage-A build from `../ai-trust-platform-main`) as a

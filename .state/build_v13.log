@@ -1,0 +1,11 @@
+===== 1) rebuild db-migrate image (has updated env.py TARGET_SCHEMA support) =====
+  built db-migrate
+docker.io/mirceacraciun795/aitrust-db-migrate:aitrust-mt
+  pushed mirceacraciun795/aitrust-db-migrate:aitrust-mt
+===== 2) build+push operator v13 (compiles guard + tenant-stores step) =====
+009b6d3cbf70: Waiting
+009b6d3cbf70: Pushed
+99a769873b27: Pushed
+v13: digest: sha256:3b321985420faccc8d102e2df04afcac6f3e6748d929de6a8cc86284226c5c03 size: 856
+[32m✅ operator image pushed: mirceacraciun795/aitrust-mt-operator:v13[0m
+OP_EXIT: 0

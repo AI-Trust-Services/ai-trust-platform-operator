@@ -40,6 +40,29 @@ log "Applying namespace + config …"
 sk apply -f "$OUT/00.yaml"
 sk -n "$NS" apply -f "$OUT/01a.yaml" -f "$OUT/01b.yaml" -f "$OUT/01c.yaml" -f "$OUT/02.yaml"
 
+# 0a) MESH admin secret for per-tenant user management. The users-backend (MT/jwt mode) manages users in
+#     each tenant's realm using the mesh Keycloak bootstrap admin (same creds the operator/kc-client Job
+#     use). The operator also copies this on Subscription reconcile (ensureMeshAdminSecret), but the shared
+#     app can be deployed BEFORE any Subscription exists — so copy it here too, idempotently, or the
+#     users-backend pod crash-loops on the missing secretKeyRef. Source: mesh ns keycloak-admin.
+if ! sk -n "$NS" get secret mesh-keycloak-admin >/dev/null 2>&1; then
+  MESH_ADMIN_NS="${MESH_ADMIN_NS:-$MESH_NS}"; MESH_ADMIN_SECRET="${MESH_ADMIN_SECRET:-keycloak-admin}"
+  MU="$(sk -n "$MESH_ADMIN_NS" get secret "$MESH_ADMIN_SECRET" -o jsonpath='{.data.username}' 2>/dev/null)"
+  MP="$(sk -n "$MESH_ADMIN_NS" get secret "$MESH_ADMIN_SECRET" -o jsonpath='{.data.password}' 2>/dev/null)"
+  if [ -n "$MU" ] && [ -n "$MP" ]; then
+    cat <<EOF | sk apply -f -
+apiVersion: v1
+kind: Secret
+metadata: { name: mesh-keycloak-admin, namespace: $NS, labels: { app.kubernetes.io/managed-by: aitrust-mt-shared-app } }
+type: Opaque
+data: { username: "$MU", password: "$MP" }
+EOF
+    ok "copied mesh-keycloak-admin into $NS (for per-tenant user management)"
+  else
+    warn "mesh admin secret $MESH_ADMIN_NS/$MESH_ADMIN_SECRET not found — users-backend will not start until it exists (operator copies it on first Subscription)"
+  fi
+fi
+
 log "Applying infra (postgres/clickhouse/minio/rabbitmq/keycloak) + waiting …"
 sk -n "$NS" apply -f "$OUT/10.yaml"
 sk -n "$NS" rollout status deploy/postgres --timeout=180s || true

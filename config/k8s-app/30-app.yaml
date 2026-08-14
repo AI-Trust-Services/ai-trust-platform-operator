@@ -230,6 +230,13 @@ spec:
             - { name: KEYCLOAK_REALM, value: "ai-trust" }
             - { name: USERS_BACKEND_CLIENT_ID, value: "users-backend" }
             - { name: USERS_BACKEND_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: app-secrets, key: USERS_BACKEND_CLIENT_SECRET } } }
+            # MT (jwt) mode: user management is per-tenant. Authenticate to the tenant's realm with the
+            # MESH Keycloak bootstrap admin (same creds the operator/kc-client Job use). The realm is
+            # resolved per-request from the verified JWT (tenant_id). KEYCLOAK_REALM above is only used
+            # in single-tenant (TENANCY_MODE=single) mode.
+            - { name: TENANCY_MODE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_MODE } } }
+            - { name: MESH_KC_ADMIN_USER, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: username } } }
+            - { name: MESH_KC_ADMIN_PASSWORD, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: password } } }
             - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
             - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
           ports: [{ containerPort: 8008 }]

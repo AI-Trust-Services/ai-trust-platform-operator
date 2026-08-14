@@ -26,6 +26,9 @@ operator:
   openfgaUrl: http://openfga.platform-mesh-system.svc.cluster.local:8080
   openfgaStoreId: ""              # the ONE shared app store id (set by 3b-shared-app.sh / deploy)
   meshKcAdminSecret: keycloak-admin  # mesh Keycloak bootstrap-admin secret (in gatewayNamespace) the operator copies
+  dbMigrateImage: mirceacraciun795/aitrust-db-migrate:aitrust-mt  # per-tenant schema provisioning Job image
+  chMigrateImage: mirceacraciun795/aitrust-clickhouse-migrate:aitrust-mt  # per-tenant CH database provisioning
+  appDbRole: ai_trust_app         # non-superuser runtime Postgres role granted on each tenant schema
 
 # api-syncagent: mirrors the Subscription CR spec-down / status-up between the kcp
 # provider workspace and this shoot.
