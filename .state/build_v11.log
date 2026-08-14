@@ -1,7 +1,0 @@
-5b797edd4268: Pushed
-v11: digest: sha256:24186bb034b723346c3cd225e4767ee791ff3baf5fbc61880b950225a38747c7 size: 856
-[32m✅ operator image pushed: mirceacraciun795/aitrust-mt-operator:v11[0m
-OP_EXIT: 0
-deployment.apps/aitrust-mt-operator image updated
-deployment "aitrust-mt-operator" successfully rolled out
-V11_ROLLED

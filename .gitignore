@@ -1,0 +1,27 @@
+# --- Secrets / credentials — NEVER commit ---------------------------------------
+# Gardener/kcp/shoot kubeconfigs (short-lived cluster admin creds)
+prerequisites/garden-kubeconfig.yaml
+*.kubeconfig
+**/*.kubeconfig
+# TLS private key + cert material staged for the mesh (self-signed)
+prerequisites/tls.key
+prerequisites/tls.crt
+prerequisites/tls-ca.crt
+
+# --- Runtime scratch / logs (not source) ----------------------------------------
+# .state/ holds throwaway per-run scripts, minted kubeconfigs, rendered manifests, and logs.
+# It is disposable working state — do not version it.
+.state/
+*.log
+
+# app source clone the build script manages inside the bundle (2b-build-app-images.sh → $BUNDLE/.appsrc)
+.appsrc/
+
+# --- Build / editor junk ----------------------------------------------------------
+__pycache__/
+*.pyc
+*.rendered.yaml
+.DS_Store
+
+# NOTE: config.env is KEPT (it's the deploy config: OPERATOR_TAG, domain, image names — no secrets).
+# If you ever put a real secret in config.env, move it out; do not un-ignore secrets.
