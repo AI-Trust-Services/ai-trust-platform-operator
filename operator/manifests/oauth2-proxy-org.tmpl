@@ -17,7 +17,7 @@ metadata:
   namespace: __NS__
   labels: { app: oauth2-proxy-org, org: "__ORG__", app.kubernetes.io/managed-by: aitrust-mt-operator }
 spec:
-  replicas: 1
+  replicas: __REPLICAS__
   selector: { matchLabels: { app: oauth2-proxy-org, org: "__ORG__" } }
   template:
     metadata:

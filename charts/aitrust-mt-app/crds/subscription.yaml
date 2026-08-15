@@ -49,6 +49,9 @@ spec:
               # The operator binds a per-org oauth2-proxy to realms/<org>. If empty, the operator falls
               # back to the mirror namespace (cluster id) — which is NOT a real realm, so set this.
               org: { type: string, default: "" }
+              # Provider action (set via the ops console): true = SUSPEND the tenant (operator scales its
+              # oauth2-proxy to 0 → login blocked; data + stores intact). false/absent = active. Reversible.
+              suspended: { type: boolean, default: false }
           status:
             type: object
             properties:

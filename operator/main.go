@@ -108,6 +108,13 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	spec, _, _ := unstructured.NestedMap(cr.Object, "spec")
 	display := strOr(spec["displayName"], "AI Trust Platform MT")
 	adminEmail := strOr(spec["adminEmail"], "")
+	// suspended (provider action): when true the tenant's oauth2-proxy is stamped with 0 replicas, so
+	// its host stops serving (login blocked) while ALL data + resources stay intact. Reversible.
+	suspended, _, _ := unstructured.NestedBool(cr.Object, "spec", "suspended")
+	proxyReplicas := "1"
+	if suspended {
+		proxyReplicas = "0"
+	}
 
 	// org == the mesh account/realm. spec.org is authoritative and MUST name a realm that exists
 	// in the mesh Keycloak (validated below). Trim whitespace BEFORE dnsSafe (dnsSafe turns an
@@ -252,7 +259,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		"__KC_PUBLIC_REALM__":   r.cfg.kcPublic + "/realms/" + org,
 		"__WHITELIST_DOMAIN__":  r.cfg.domainSuffix,
 		"__SECRET_NAME__":       secretName, "__SECRET_KEY__": "client-secret",
-		"__COOKIE_SECRET__": cookieSecret,
+		"__COOKIE_SECRET__": cookieSecret, "__REPLICAS__": proxyReplicas,
 		"__GATEWAY_NS__":    r.cfg.gatewayNS, "__GATEWAY_NAME__": r.cfg.gatewayName,
 		"__GATEWAY_SECTION__": r.cfg.gatewaySection,
 	})
@@ -268,6 +275,12 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	// ---- 5. status -------------------------------------------------------------
+	if suspended {
+		r.setPhase(ctx, cr, "Suspended", false, url, tenantID, org,
+			fmt.Sprintf("tenant '%s' SUSPENDED by provider: login blocked (oauth2-proxy scaled to 0); data + stores intact. Resume to restore.", tenantID))
+		_ = display
+		return ctrl.Result{RequeueAfter: 5 * time.Minute}, nil
+	}
 	r.setPhase(ctx, cr, "Ready", true, url, tenantID, org,
 		fmt.Sprintf("tenant '%s' active: mesh realm '%s' + per-org oauth2-proxy at %s (data isolated by tenant_id/RLS)", tenantID, org, orgHost))
 	_ = display
@@ -569,7 +582,7 @@ func main() {
 	if err := builder.ControllerManagedBy(mgr).For(proto).Complete(&reconciler{Client: mgr.GetClient(), cfg: c}); err != nil {
 		panic(err)
 	}
-	log.Log.Info("aitrust-mt-operator v18 starting", "providerNS", c.providerNS, "domainSuffix", c.domainSuffix,
+	log.Log.Info("aitrust-mt-operator v19 starting", "providerNS", c.providerNS, "domainSuffix", c.domainSuffix,
 		"gateway", c.gatewayName, "storeID", c.storeID != "")
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		panic(err)
