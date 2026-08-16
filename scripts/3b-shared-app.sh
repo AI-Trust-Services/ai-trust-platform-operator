@@ -98,7 +98,7 @@ sk -n "$NS" apply -f "$OUT/30.yaml" -f "$OUT/40.yaml"
 #     "ai-trust" in the SHARED mesh OpenFGA (see docs/mesh-idp-integration-design.md ADDENDUM 2). The app
 #     backends read the resolved store id from OPENFGA_STORE_ID env. Data isolation stays via Postgres RLS.
 OPENFGA_MESH_URL="${OPENFGA_MESH_URL:-http://openfga.$MESH_NS.svc.cluster.local:8080}"
-OPENFGA_STORE_NAME="${OPENFGA_STORE_NAME:-ai-trust}"
+OPENFGA_STORE_NAME="${OPENFGA_STORE_NAME:-aitrust}"
 ADMIN_USER="$(sk -n "$NS" get secret app-secrets -o jsonpath='{.data.APP_ADMIN_USERNAME}' | base64 -d 2>/dev/null || echo admin)"
 log "Seeding app roles into the MESH OpenFGA (store '$OPENFGA_STORE_NAME' @ $OPENFGA_MESH_URL) …"
 sk -n "$NS" delete job openfga-provision --ignore-not-found >/dev/null 2>&1
@@ -125,20 +125,21 @@ spec:
             - { name: OPENFGA_STORE_ID_FILE, value: "/tmp/store_id" }
 EOF
 sk -n "$NS" wait --for=condition=complete job/openfga-provision --timeout=180s || warn "openfga-provision job not complete yet"
-# resolve the store id the provisioner created (idempotent: find the store named ai-trust in the mesh openfga)
+# resolve the store id the provisioner created — paginate + EXACT name match (jq-free via python).
+# NOTE the provisioner creates the store under $OPENFGA_STORE_NAME; the mesh OpenFGA holds many stores
+# so a single unpaginated page + loose grep can miss it (that shipped __OPENFGA_STORE_ID__ once).
 STORE_ID="$(sk -n "$NS" run fgaid-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.9.1 --quiet --command -- \
-  sh -c "curl -s $OPENFGA_MESH_URL/stores" 2>/dev/null | tr ',' '\n' | grep -A1 "\"name\":\"$OPENFGA_STORE_NAME\"" | grep -oE '\"id\":\"[^\"]+\"' | head -1 | sed 's/.*://;s/\"//g')"
-# fallback: the id precedes the name in the /stores JSON — try the robust jq-free extract
-[ -n "$STORE_ID" ] || STORE_ID="$(sk -n "$NS" run fgaid2-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.9.1 --quiet --command -- \
-  sh -c "curl -s $OPENFGA_MESH_URL/stores" 2>/dev/null | grep -oE '\{[^}]*\"name\":\"'"$OPENFGA_STORE_NAME"'\"[^}]*\}' | grep -oE '\"id\":\"[^\"]+\"' | head -1 | sed 's/.*://;s/\"//g')"
+  sh -c "curl -s '$OPENFGA_MESH_URL/stores?page_size=200'" 2>/dev/null \
+  | python3 -c "import sys,json;d=json.load(sys.stdin);print(next((s['id'] for s in d.get('stores',[]) if s.get('name')=='$OPENFGA_STORE_NAME'),''))" 2>/dev/null)"
 if [ -n "$STORE_ID" ]; then
   ok "app OpenFGA store '$OPENFGA_STORE_NAME' id = $STORE_ID"
-  log "Setting OPENFGA_URL + OPENFGA_STORE_ID on all backends …"
-  for d in $(sk -n "$NS" get deploy -o name | grep -E 'backend'); do
+  log "Setting OPENFGA_URL + OPENFGA_STORE_ID on all backends + the operator …"
+  # backends AND the operator need it (operator's seedAdminTuple skips silently if storeID is empty)
+  for d in $(sk -n "$NS" get deploy -o name | grep -E 'backend|aitrust-operator|policy-checker|otel-clickhouse-consumer'); do
     sk -n "$NS" set env "$d" OPENFGA_URL="$OPENFGA_MESH_URL" OPENFGA_STORE_ID="$STORE_ID" >/dev/null || true
   done
 else
-  warn "could not resolve the OpenFGA store id — backends will fail authz until OPENFGA_STORE_ID is set. Check the openfga-provision job logs."
+  warn "could not resolve the OpenFGA store id — backends + operator will fail authz until OPENFGA_STORE_ID is set (nav shows only Overview; seedAdminTuple skipped). Check the openfga-provision job logs + store name '$OPENFGA_STORE_NAME'."
 fi
 
 # 2) RLS wiring: the runtime backends + workers must connect as the NON-SUPERUSER app role so RLS bites.
