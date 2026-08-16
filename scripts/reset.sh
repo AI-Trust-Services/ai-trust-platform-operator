@@ -1,10 +1,10 @@
 #!/bin/bash
-# reset.sh — remove the AI Trust MT provider + the shared app + all Subscriptions, keeping the mesh.
+# reset.sh — remove the AI Trust Platform provider + the shared app + all Subscriptions, keeping the mesh.
 #   - delete Subscription CRs in the consumer ws (finalizer soft-disables the tenant realm; data retained)
 #   - uninstall the workload + pm charts; delete the shared app namespace ($PROVIDER_NS, cascades everything)
 #   - delete the provider workspace ($PROVIDER_WS)
-#   - sweep the aitrust-mt shared-app HTTPRoute on the gateway
-#   - --pool also drops the $WORKER_POOL (ai-trust-mt) worker pool
+#   - sweep the aitrust shared-app HTTPRoute on the gateway
+#   - --pool also drops the $WORKER_POOL (ai-trust) worker pool
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"; load_config
 [ -s "$SHOOT_KUBECONFIG" ] || mint_shoot_kubeconfig
@@ -17,7 +17,7 @@ kc "$WS" -n default delete subscription --all --wait=false >/dev/null 2>&1 || tr
 sleep 10
 
 log "Uninstalling workload chart + deleting the shared app namespace (ns $PROVIDER_NS)…"
-helm --kubeconfig "$SHOOT_KUBECONFIG" -n "$PROVIDER_NS" uninstall aitrust-mt-app >/dev/null 2>&1 || true
+helm --kubeconfig "$SHOOT_KUBECONFIG" -n "$PROVIDER_NS" uninstall aitrust-app >/dev/null 2>&1 || true
 sk delete ns "$PROVIDER_NS" --wait=false >/dev/null 2>&1 || true
 
 log "Uninstalling pm chart from $PROVIDER_WS…"
@@ -29,7 +29,7 @@ PARENT="${PROVIDER_WS%:*}"; WSNAME="${PROVIDER_WS##*:}"
 kc "$PARENT" delete workspace "$WSNAME" --wait=false >/dev/null 2>&1 || true
 
 # Sweep the shared-app HTTPRoute (+ any leftover per-tenant routes) on the gateway.
-for r in $(sk -n "$GATEWAY_NS" get httproute -o name 2>/dev/null | grep -E 'aitrust-mt' || true); do
+for r in $(sk -n "$GATEWAY_NS" get httproute -o name 2>/dev/null | grep -E 'aitrust' || true); do
   sk -n "$GATEWAY_NS" delete "$r" >/dev/null 2>&1 || true
 done
 

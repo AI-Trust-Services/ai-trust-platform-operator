@@ -1,4 +1,4 @@
-# Multi-stage build for the AI Trust Platform MT (subscription) operator.
+# Multi-stage build for the AI Trust Platform (subscription) operator.
 # It embeds (embed.FS) only a small tenant-provision Job template from ./manifests — per Subscription
 # it provisions a TENANT (per-tenant Keycloak realm) in the SHARED app; it does NOT stamp an app copy.
 FROM golang:1.23-alpine AS build

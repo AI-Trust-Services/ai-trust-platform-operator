@@ -1,6 +1,6 @@
 #!/bin/bash
-# 3b-shared-app.sh — deploy the ONE SHARED "AI Trust Platform MT" app (multi-tenant) into the provider
-# namespace on the ai-trust-mt worker pool. Subscriptions (each a tenant) attach to THIS instance — the
+# 3b-shared-app.sh — deploy the ONE SHARED "AI Trust Platform" app (multi-tenant) into the provider
+# namespace on the ai-trust worker pool. Subscriptions (each a tenant) attach to THIS instance — the
 # operator never stamps another copy. Renders the gold app manifests (config/k8s-app/*) with the MT
 # overlay: TENANCY_MODE=jwt, a non-superuser app DB role for RLS, one shared host.
 set -euo pipefail
@@ -53,7 +53,7 @@ if ! sk -n "$NS" get secret mesh-keycloak-admin >/dev/null 2>&1; then
     cat <<EOF | sk apply -f -
 apiVersion: v1
 kind: Secret
-metadata: { name: mesh-keycloak-admin, namespace: $NS, labels: { app.kubernetes.io/managed-by: aitrust-mt-shared-app } }
+metadata: { name: mesh-keycloak-admin, namespace: $NS, labels: { app.kubernetes.io/managed-by: aitrust-shared-app } }
 type: Opaque
 data: { username: "$MU", password: "$MP" }
 EOF
@@ -95,10 +95,10 @@ log "Applying app backends + frontends + workers + shell + oauth2-proxy …"
 sk -n "$NS" apply -f "$OUT/30.yaml" -f "$OUT/40.yaml"
 
 # 1b) ROLES → MESH OpenFGA: seed the app's authorization model + built-in role tuples into ONE app store
-#     "ai-trust-mt" in the SHARED mesh OpenFGA (see docs/mesh-idp-integration-design.md ADDENDUM 2). The app
+#     "ai-trust" in the SHARED mesh OpenFGA (see docs/mesh-idp-integration-design.md ADDENDUM 2). The app
 #     backends read the resolved store id from OPENFGA_STORE_ID env. Data isolation stays via Postgres RLS.
 OPENFGA_MESH_URL="${OPENFGA_MESH_URL:-http://openfga.$MESH_NS.svc.cluster.local:8080}"
-OPENFGA_STORE_NAME="${OPENFGA_STORE_NAME:-ai-trust-mt}"
+OPENFGA_STORE_NAME="${OPENFGA_STORE_NAME:-ai-trust}"
 ADMIN_USER="$(sk -n "$NS" get secret app-secrets -o jsonpath='{.data.APP_ADMIN_USERNAME}' | base64 -d 2>/dev/null || echo admin)"
 log "Seeding app roles into the MESH OpenFGA (store '$OPENFGA_STORE_NAME' @ $OPENFGA_MESH_URL) …"
 sk -n "$NS" delete job openfga-provision --ignore-not-found >/dev/null 2>&1
@@ -125,7 +125,7 @@ spec:
             - { name: OPENFGA_STORE_ID_FILE, value: "/tmp/store_id" }
 EOF
 sk -n "$NS" wait --for=condition=complete job/openfga-provision --timeout=180s || warn "openfga-provision job not complete yet"
-# resolve the store id the provisioner created (idempotent: find the store named ai-trust-mt in the mesh openfga)
+# resolve the store id the provisioner created (idempotent: find the store named ai-trust in the mesh openfga)
 STORE_ID="$(sk -n "$NS" run fgaid-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.9.1 --quiet --command -- \
   sh -c "curl -s $OPENFGA_MESH_URL/stores" 2>/dev/null | tr ',' '\n' | grep -A1 "\"name\":\"$OPENFGA_STORE_NAME\"" | grep -oE '\"id\":\"[^\"]+\"' | head -1 | sed 's/.*://;s/\"//g')"
 # fallback: the id precedes the name in the /stores JSON — try the robust jq-free extract
@@ -148,7 +148,7 @@ for d in $(sk -n "$NS" get deploy -o name | grep -E 'backend|worker|otel-clickho
   sk -n "$NS" set env "$d" DATABASE_URL="$(sk -n "$NS" get secret app-secrets -o jsonpath='{.data.APP_DATABASE_URL}' | base64 -d)" >/dev/null || true
 done
 
-# 3) pin everything to the ai-trust-mt worker pool
+# 3) pin everything to the ai-trust worker pool
 log "Pinning the shared app to the '$MSP_WORKER_LABEL' worker pool …"
 for d in $(sk -n "$NS" get deploy -o name); do
   sk -n "$NS" patch "$d" --type=strategic -p \
@@ -160,7 +160,7 @@ log "Wiring ingress for $SHARED_APP_HOST …"
 cat <<EOF | sk apply -f -
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
-metadata: { name: aitrust-mt-shared-app, namespace: $GATEWAY_NS }
+metadata: { name: aitrust-shared-app, namespace: $GATEWAY_NS }
 spec:
   parentRefs: [{ name: $GATEWAY_NAME, namespace: $GATEWAY_NS, sectionName: terminate-wildstar }]
   hostnames: ["$SHARED_APP_HOST"]
@@ -169,7 +169,7 @@ spec:
 ---
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
-metadata: { name: allow-gw-to-aitrust-mt, namespace: $NS }
+metadata: { name: allow-gw-to-aitrust, namespace: $NS }
 spec:
   from: [{ group: gateway.networking.k8s.io, kind: HTTPRoute, namespace: $GATEWAY_NS }]
   to: [{ group: "", kind: Service }]

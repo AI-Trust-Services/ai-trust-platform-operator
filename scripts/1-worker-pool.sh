@@ -32,4 +32,4 @@ fi
 # (multiple pools may carry that same node label, which would give a false positive here).
 node_ready(){ sk get nodes -l worker.gardener.cloud/pool="$WORKER_POOL" --no-headers 2>/dev/null | grep -q ' Ready '; }
 wait_for 1800 20 "a Ready node in pool $WORKER_POOL" node_ready
-ok "ai-trust-mt worker node ready"
+ok "ai-trust worker node ready"

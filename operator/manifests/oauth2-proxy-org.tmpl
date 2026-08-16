@@ -1,6 +1,6 @@
 # oauth2-proxy-org.tmpl — per-ORG oauth2-proxy + Service + HTTPRoute + ReferenceGrant, stamped by the
 # operator for each Subscription. Each org's proxy binds to its OWN mesh Keycloak realm (realms/<ORG>) and
-# routes a per-org host (ai-trust-mt-<ORG>.<suffix>) to the ONE SHARED app (upstream http://shell:80).
+# routes a per-org host (ai-trust-<ORG>.<suffix>) to the ONE SHARED app (upstream http://shell:80).
 # This is how many org realms authenticate into a single shared app: one proxy per realm, one host per org,
 # same shell. Tenant is carried by the token (tenant_id=<ORG> claim mapper + iss fallback) → libs/tenancy.
 #
@@ -15,7 +15,7 @@ kind: Deployment
 metadata:
   name: oauth2-proxy-__ORG__
   namespace: __NS__
-  labels: { app: oauth2-proxy-org, org: "__ORG__", app.kubernetes.io/managed-by: aitrust-mt-operator }
+  labels: { app: oauth2-proxy-org, org: "__ORG__", app.kubernetes.io/managed-by: aitrust-operator }
 spec:
   replicas: __REPLICAS__
   selector: { matchLabels: { app: oauth2-proxy-org, org: "__ORG__" } }
@@ -28,7 +28,7 @@ spec:
           image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
           args:
             - --provider=oidc
-            - --client-id=aitrust-mt-app
+            - --client-id=aitrust-app
             - --client-secret=$(CLIENT_SECRET)
             - --oidc-issuer-url=__KC_INTERNAL_REALM__
             - --login-url=__KC_PUBLIC_REALM__/protocol/openid-connect/auth
@@ -65,7 +65,7 @@ kind: Service
 metadata:
   name: oauth2-proxy-__ORG__
   namespace: __NS__
-  labels: { app: oauth2-proxy-org, org: "__ORG__", app.kubernetes.io/managed-by: aitrust-mt-operator }
+  labels: { app: oauth2-proxy-org, org: "__ORG__", app.kubernetes.io/managed-by: aitrust-operator }
 spec:
   selector: { app: oauth2-proxy-org, org: "__ORG__" }
   ports: [{ port: 8080, targetPort: 4180 }]
@@ -73,9 +73,9 @@ spec:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: aitrust-mt-__ORG__
+  name: aitrust-__ORG__
   namespace: __GATEWAY_NS__
-  labels: { app.kubernetes.io/managed-by: aitrust-mt-operator, org: "__ORG__" }
+  labels: { app.kubernetes.io/managed-by: aitrust-operator, org: "__ORG__" }
 spec:
   parentRefs: [{ name: __GATEWAY_NAME__, namespace: __GATEWAY_NS__, sectionName: __GATEWAY_SECTION__ }]
   hostnames: ["__ORG_HOST__"]
@@ -87,7 +87,7 @@ kind: ReferenceGrant
 metadata:
   name: allow-gw-to-oauth2-__ORG__
   namespace: __NS__
-  labels: { app.kubernetes.io/managed-by: aitrust-mt-operator, org: "__ORG__" }
+  labels: { app.kubernetes.io/managed-by: aitrust-operator, org: "__ORG__" }
 spec:
   from: [{ group: gateway.networking.k8s.io, kind: HTTPRoute, namespace: __GATEWAY_NS__ }]
   to: [{ group: "", kind: Service }]

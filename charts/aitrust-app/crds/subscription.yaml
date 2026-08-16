@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: subscriptions.sub.aitrustmt.msp
+  name: subscriptions.sub.aitrust.msp
 spec:
-  group: sub.aitrustmt.msp
+  group: sub.aitrust.msp
   names:
     kind: Subscription
     listKind: SubscriptionList
@@ -38,10 +38,10 @@ spec:
           spec:
             type: object
             properties:
-              # A subscription to the SHARED AI Trust Platform MT app. It does NOT create an app copy;
+              # A subscription to the SHARED AI Trust Platform app. It does NOT create an app copy;
               # the operator provisions a TENANT (per-tenant Keycloak realm + tenant_id data isolation)
               # inside the one shared instance. Size is irrelevant to a subscription (no per-tenant infra).
-              displayName: { type: string, default: "AI Trust Platform MT" }
+              displayName: { type: string, default: "AI Trust Platform" }
               plan: { type: string, enum: [standard, enterprise], default: standard }  # cosmetic tier label
               adminEmail: { type: string, default: "" }
               # The consumer ORG this subscription belongs to == its Platform Mesh account name == its

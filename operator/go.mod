@@ -1,3 +1,3 @@
-module aitrust-mt-operator
+module aitrust-operator
 
 go 1.23

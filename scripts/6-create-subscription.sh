@@ -12,11 +12,11 @@ WS="root:orgs:$ORG_NAME:$ACCOUNT_NAME"
 
 log "Creating Subscription '$INSTANCE_NAME' (plan=$INSTANCE_PLAN) in $WS…"
 kc "$WS" -n default apply -f - <<EOF >/dev/null
-apiVersion: sub.aitrustmt.msp/v1alpha1
+apiVersion: sub.aitrust.msp/v1alpha1
 kind: Subscription
 metadata: { name: ${INSTANCE_NAME} }
 spec:
-  displayName: "AI Trust MT — ${ACCOUNT_NAME}"
+  displayName: "AI Trust — ${ACCOUNT_NAME}"
   plan: ${INSTANCE_PLAN}
   adminEmail: ${DEMO_USER}
 EOF

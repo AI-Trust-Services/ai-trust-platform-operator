@@ -186,6 +186,26 @@ spec:
             - { name: KC_HTTP_ENABLED, value: "true" }
             - { name: KC_HOSTNAME_STRICT, value: "false" }
             - { name: KC_HTTP_RELATIVE_PATH, value: "/keycloak" }
+          # Pod IPs (100.64.0.0/10 CGNAT on this shoot) are NOT RFC1918, so Keycloak's default
+          # master sslRequired=external treats in-cluster HTTP token requests as "external" → 403
+          # "HTTPS required", which blocks keycloak-provision. Relax master to sslRequired=NONE once
+          # Keycloak is up, over localhost (where the ssl gate passes). Idempotent; retries until ready.
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    for i in $(seq 1 60); do
+                      /opt/keycloak/bin/kcadm.sh config credentials \
+                        --server http://localhost:8080/keycloak --realm master \
+                        --user "$KC_BOOTSTRAP_ADMIN_USERNAME" --password "$KC_BOOTSTRAP_ADMIN_PASSWORD" >/dev/null 2>&1 \
+                      && /opt/keycloak/bin/kcadm.sh update realms/master -s sslRequired=NONE >/dev/null 2>&1 \
+                      && echo "master sslRequired=NONE set" && exit 0
+                      sleep 5
+                    done
+                    echo "warning: could not relax master sslRequired (keycloak may not be ready)"; exit 0
           ports: [{ containerPort: 8080 }]
           readinessProbe:
             httpGet: { path: /keycloak/realms/master, port: 8080 }

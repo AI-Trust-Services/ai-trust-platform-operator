@@ -1,13 +1,13 @@
 package main
 
-// aitrust-mt-operator (v6) — watches Subscription CRs and onboards each customer ORG as a TENANT of the
-// ONE SHARED "AI Trust Platform MT" app. It does NOT stamp an app copy. Per Subscription it:
+// aitrust-operator (v6) — watches Subscription CRs and onboards each customer ORG as a TENANT of the
+// ONE SHARED "AI Trust Platform" app. It does NOT stamp an app copy. Per Subscription it:
 //   1. resolves the org (spec.org == the org's Platform-Mesh account == its mesh Keycloak realm name),
 //   2. ensures a per-org secret (oauth2-proxy client secret + cookie secret),
 //   3. stamps a Job that creates the per-org oauth2-proxy OIDC client (+ tenant_id=<org> claim mapper) in
 //      the shared MESH Keycloak realm <org>,
 //   4. stamps a per-org oauth2-proxy + Service + HTTPRoute + ReferenceGrant on a per-org host
-//      (ai-trust-mt-<org>.<suffix>) → the shared app (upstream shell:80),
+//      (ai-trust-<org>.<suffix>) → the shared app (upstream shell:80),
 //   5. seeds the org admin's user→platform_administrator tuple in the ONE shared app OpenFGA store,
 //   6. writes the per-org login URL + realm + tenantId to status.
 // Tenant DATA isolation is Postgres RLS (tenant_id = the org), enforced inside the shared app by libs/tenancy.
@@ -43,9 +43,9 @@ import (
 //go:embed manifests/*.tmpl
 var manifestFS embed.FS
 
-var gvk = schema.GroupVersionKind{Group: "sub.aitrustmt.msp", Version: "v1alpha1", Kind: "Subscription"}
+var gvk = schema.GroupVersionKind{Group: "sub.aitrust.msp", Version: "v1alpha1", Kind: "Subscription"}
 
-const finalizer = "subscription.sub.aitrustmt.msp/finalizer"
+const finalizer = "subscription.sub.aitrust.msp/finalizer"
 
 func env(k, def string) string {
 	if v := os.Getenv(k); v != "" {
@@ -56,7 +56,7 @@ func env(k, def string) string {
 
 type config struct {
 	providerNS     string // ns on the shoot for the shared app + per-org proxies
-	domainSuffix   string // per-org host = ai-trust-mt-<org>.<domainSuffix>
+	domainSuffix   string // per-org host = ai-trust-<org>.<domainSuffix>
 	poolLabel      string // worker pool nodeSelector/toleration value
 	kcInternal     string // in-cluster mesh keycloak base, incl /keycloak (issuer/redeem/jwks)
 	kcPublic       string // public mesh keycloak base, incl /keycloak (browser login-url)
@@ -74,9 +74,9 @@ type config struct {
 
 func cfg() config {
 	return config{
-		providerNS:     env("PROVIDER_NS", "aitrust-mt-msp"),
+		providerNS:     env("PROVIDER_NS", "aitrust-msp"),
 		domainSuffix:   env("INSTANCE_DOMAIN_SUFFIX", "ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu"),
-		poolLabel:      env("MSP_WORKER_LABEL", "ai-trust-mt"),
+		poolLabel:      env("MSP_WORKER_LABEL", "ai-trust"),
 		kcInternal:     env("KC_INTERNAL_URL", "http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak"),
 		kcPublic:       env("KC_PUBLIC_URL", "https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak"),
 		gatewayNS:      env("GATEWAY_NS", "platform-mesh-system"),
@@ -86,8 +86,8 @@ func cfg() config {
 		storeID:        env("OPENFGA_STORE_ID", ""),
 		meshAdminNS:    env("MESH_KC_ADMIN_NS", "platform-mesh-system"),
 		meshAdminName:  env("MESH_KC_ADMIN_SECRET", "keycloak-admin"),
-		dbMigrateImage: env("DBMIGRATE_IMAGE", "mirceacraciun795/aitrust-db-migrate:aitrust-mt"),
-		chMigrateImage: env("CHMIGRATE_IMAGE", "mirceacraciun795/aitrust-clickhouse-migrate:aitrust-mt"),
+		dbMigrateImage: env("DBMIGRATE_IMAGE", "mirceacraciun795/aitrust-db-migrate:aitrust"),
+		chMigrateImage: env("CHMIGRATE_IMAGE", "mirceacraciun795/aitrust-clickhouse-migrate:aitrust"),
 		appRole:        env("APP_DB_ROLE", "ai_trust_app"),
 	}
 }
@@ -106,7 +106,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	spec, _, _ := unstructured.NestedMap(cr.Object, "spec")
-	display := strOr(spec["displayName"], "AI Trust Platform MT")
+	display := strOr(spec["displayName"], "AI Trust Platform")
 	adminEmail := strOr(spec["adminEmail"], "")
 	// suspended (provider action): when true the tenant's oauth2-proxy is stamped with 0 replicas, so
 	// its host stops serving (login blocked) while ALL data + resources stay intact. Reversible.
@@ -123,7 +123,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	rawOrg := strings.TrimSpace(strOr(spec["org"], ""))
 	org := dnsSafe(rawOrg)
 	tenantID := org
-	orgHost := "ai-trust-mt-" + org + "." + r.cfg.domainSuffix
+	orgHost := "ai-trust-" + org + "." + r.cfg.domainSuffix
 	url := "https://" + orgHost
 
 	// ---- finalizer / delete ----------------------------------------------------
@@ -226,7 +226,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	}
 
 	// ---- 1. per-org secret (client secret + cookie secret) ---------------------
-	secretName := "aitrust-mt-oauth2-" + org
+	secretName := "aitrust-oauth2-" + org
 	clientSecret, cookieSecret, err := r.ensureOrgSecret(ctx, secretName, org)
 	if err != nil {
 		return r.fail(ctx, cr, url, tenantID, org, "ensure secret", err)
@@ -245,7 +245,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			"__JOB_NAME__": jobName, "__NS__": r.cfg.providerNS, "__ORG__": org,
 			"__POOL_LABEL__": r.cfg.poolLabel, "__KC_INTERNAL__": r.cfg.kcInternal,
 			"__CB_URL__": url + "/oauth2/callback", "__ORIGIN__": url,
-			"__CLIENT_ID__": "aitrust-mt-app", "__SECRET_NAME__": secretName, "__SECRET_KEY__": "client-secret",
+			"__CLIENT_ID__": "aitrust-app", "__SECRET_NAME__": secretName, "__SECRET_KEY__": "client-secret",
 		})
 		if err := r.applyDoc(ctx, doc); err != nil {
 			return r.fail(ctx, cr, url, tenantID, org, "stamp kc-client job", err)
@@ -304,7 +304,7 @@ func (r *reconciler) ensureOrgSecret(ctx context.Context, name, org string) (cli
 		"apiVersion": "v1", "kind": "Secret",
 		"metadata": map[string]interface{}{
 			"name": name, "namespace": r.cfg.providerNS,
-			"labels": map[string]interface{}{"app.kubernetes.io/managed-by": "aitrust-mt-operator", "org": org},
+			"labels": map[string]interface{}{"app.kubernetes.io/managed-by": "aitrust-operator", "org": org},
 		},
 		"stringData": map[string]interface{}{"client-secret": clientSecret, "cookie-secret": cookieSecret},
 	}}
@@ -334,7 +334,7 @@ func (r *reconciler) ensureMeshAdminSecret(ctx context.Context) error {
 		"apiVersion": "v1", "kind": "Secret",
 		"metadata": map[string]interface{}{
 			"name": copyName, "namespace": r.cfg.providerNS,
-			"labels": map[string]interface{}{"app.kubernetes.io/managed-by": "aitrust-mt-operator"},
+			"labels": map[string]interface{}{"app.kubernetes.io/managed-by": "aitrust-operator"},
 		},
 		"type": "Opaque",
 		"data": data,
@@ -378,7 +378,7 @@ func (r *reconciler) deleteOrgResources(ctx context.Context, org string) {
 	}
 	del(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"}, r.cfg.providerNS, "oauth2-proxy-"+org)
 	del(schema.GroupVersionKind{Version: "v1", Kind: "Service"}, r.cfg.providerNS, "oauth2-proxy-"+org)
-	del(schema.GroupVersionKind{Group: "gateway.networking.k8s.io", Version: "v1", Kind: "HTTPRoute"}, r.cfg.gatewayNS, "aitrust-mt-"+org)
+	del(schema.GroupVersionKind{Group: "gateway.networking.k8s.io", Version: "v1", Kind: "HTTPRoute"}, r.cfg.gatewayNS, "aitrust-"+org)
 	del(schema.GroupVersionKind{Group: "gateway.networking.k8s.io", Version: "v1beta1", Kind: "ReferenceGrant"}, r.cfg.providerNS, "allow-gw-to-oauth2-"+org)
 }
 
@@ -401,7 +401,7 @@ func (r *reconciler) applyDoc(ctx context.Context, doc string) error {
 		if obj == nil {
 			continue
 		}
-		if err := r.Patch(ctx, obj, client.Apply, client.ForceOwnership, client.FieldOwner("aitrust-mt-operator")); err != nil {
+		if err := r.Patch(ctx, obj, client.Apply, client.ForceOwnership, client.FieldOwner("aitrust-operator")); err != nil {
 			return fmt.Errorf("apply %s/%s: %w", obj.GetKind(), obj.GetName(), err)
 		}
 	}
@@ -582,7 +582,7 @@ func main() {
 	if err := builder.ControllerManagedBy(mgr).For(proto).Complete(&reconciler{Client: mgr.GetClient(), cfg: c}); err != nil {
 		panic(err)
 	}
-	log.Log.Info("aitrust-mt-operator v19 starting", "providerNS", c.providerNS, "domainSuffix", c.domainSuffix,
+	log.Log.Info("aitrust-operator v19 starting", "providerNS", c.providerNS, "domainSuffix", c.domainSuffix,
 		"gateway", c.gatewayName, "storeID", c.storeID != "")
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		panic(err)

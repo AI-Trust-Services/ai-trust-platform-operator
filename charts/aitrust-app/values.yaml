@@ -1,33 +1,33 @@
-# aitrust-mt-app — workload chart values
-nameOverride: aitrust-mt
-exportName: sub.aitrustmt.msp     # APIExport/EndpointSlice the syncagent binds to (must match the pm chart)
+# aitrust-app — workload chart values
+nameOverride: aitrust
+exportName: sub.aitrust.msp     # APIExport/EndpointSlice the syncagent binds to (must match the pm chart)
 
 # The MT operator that provisions a per-tenant realm + tenant_id isolation inside the ONE shared app
 # per Subscription.
 operator:
   image:
-    repository: mirceacraciun795/aitrust-mt-operator
+    repository: mirceacraciun795/aitrust-operator
     tag: v1
     pullPolicy: Always
   # env driving the subscription operator (the shared-app coordinates + the tenant-provision image)
-  sharedAppHost: ai-trust-mt.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
-  providerNamespace: aitrust-mt-msp
-  provisionImage: mirceacraciun795/aitrust-keycloak-provision:aitrust-mt
+  sharedAppHost: ai-trust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+  providerNamespace: aitrust-msp
+  provisionImage: mirceacraciun795/aitrust-keycloak-provision:aitrust
   registry: mirceacraciun795
-  tag: aitrust-mt                 # MT app image tag
+  tag: aitrust                 # MT app image tag
   gatewayNamespace: platform-mesh-system
   gatewayName: k8sapi-gateway
-  mspWorkerLabel: ai-trust-mt     # node pool label the shared app + operator pin to
+  mspWorkerLabel: ai-trust     # node pool label the shared app + operator pin to
   # v5 multi-realm auth
-  domainSuffix: ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu  # per-org host = ai-trust-mt-<org>.<suffix>
+  domainSuffix: ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu  # per-org host = ai-trust-<org>.<suffix>
   gatewaySection: terminate-wildstar   # gateway listener that terminates *.<suffix>
   kcInternalUrl: http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak
   kcPublicUrl: https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak
   openfgaUrl: http://openfga.platform-mesh-system.svc.cluster.local:8080
   openfgaStoreId: ""              # the ONE shared app store id (set by 3b-shared-app.sh / deploy)
   meshKcAdminSecret: keycloak-admin  # mesh Keycloak bootstrap-admin secret (in gatewayNamespace) the operator copies
-  dbMigrateImage: mirceacraciun795/aitrust-db-migrate:aitrust-mt  # per-tenant schema provisioning Job image
-  chMigrateImage: mirceacraciun795/aitrust-clickhouse-migrate:aitrust-mt  # per-tenant CH database provisioning
+  dbMigrateImage: mirceacraciun795/aitrust-db-migrate:aitrust  # per-tenant schema provisioning Job image
+  chMigrateImage: mirceacraciun795/aitrust-clickhouse-migrate:aitrust  # per-tenant CH database provisioning
   appDbRole: ai_trust_app         # non-superuser runtime Postgres role granted on each tenant schema
 
 # api-syncagent: mirrors the Subscription CR spec-down / status-up between the kcp

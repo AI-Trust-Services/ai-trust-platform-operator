@@ -28,10 +28,10 @@ TID="$(kc "$WS" -n default get subscription "$INSTANCE_NAME" -o jsonpath='{.stat
 
 echo ""
 echo "======================================================================"
-ok "AI Trust MT (multi-tenant) provider live on ai-trust-1"
+ok "AI Trust Platform provider live on ai-trust-1"
 echo "   Shared app   : https://$SHARED_APP_HOST  (ONE instance; all tenants share it)"
 echo "   Tenant URL   : ${URL:-<pending>}   (routes to the shared app; tenant resolved from its realm)"
 echo "   Tenant realm : ${REALM:-<pending>}   tenantId=${TID:-<pending>}"
-echo "   Portal tile  : account '$ACCOUNT_NAME' → Namespaces → default → expand 'AI Trust Platform MT'"
+echo "   Portal tile  : account '$ACCOUNT_NAME' → Namespaces → default → expand 'AI Trust Platform'"
 echo "   (tiles are namespace-scoped: NOT on the account dashboard — see PORTAL_TILES_FINDING in Standard_MSP_Demo)"
 echo "======================================================================"

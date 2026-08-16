@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-#  deploy.sh — publish the AI Trust Platform MT (multi-tenant) as an MSP provider on ai-trust-1.
+#  deploy.sh — publish the AI Trust Platform (multi-tenant) as an MSP provider on ai-trust-1.
 #  ONE shared app is deployed once (3b); each Enable creates a Subscription and the operator provisions
 #  a per-tenant Keycloak realm inside that shared app — it does NOT stamp an app copy.
 #  Refresh garden login first (Ubuntu terminal):  bash prerequisites/login.sh
@@ -11,7 +11,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"
 
 echo ""
 echo "######################################################################"
-echo "#  AI Trust Platform MT — multi-tenant MSP provider on ai-trust-1"
+echo "#  AI Trust Platform — multi-tenant MSP provider on ai-trust-1"
 echo "######################################################################"
 
 bash "$HERE/0-check-prerequisites.sh" || die "Prerequisites incomplete — fix ❌ above and re-run."
@@ -28,5 +28,5 @@ bash "$HERE/6-create-subscription.sh"
 bash "$HERE/7-verify-portal.sh"
 
 echo ""
-ok "DONE. AI Trust MT published as an MSP provider; shared app live + a demo tenant subscribed."
+ok "DONE. AI Trust Platform published as an MSP provider; shared app live + a demo tenant subscribed."
 echo "   Reset (remove subscriptions + shared app + provider, keep the mesh): bash scripts/reset.sh   (--pool also drops $WORKER_POOL)"

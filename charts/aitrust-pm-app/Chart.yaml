@@ -1,8 +1,8 @@
 apiVersion: v2
-name: aitrust-mt-pm-app
+name: aitrust-pm-app
 description: >-
-  AI Trust Platform MT (multi-tenant) provider — kcp/control-plane side. Installed INTO the provider
-  workspace root:providers:ai-trust-mt. Declares the APIExport, the ContentConfiguration (portal tile
+  AI Trust Platform provider — kcp/control-plane side. Installed INTO the provider
+  workspace root:providers:ai-trust. Declares the APIExport, the ContentConfiguration (portal tile
   pointing at the workload chart's in-cluster nginx /pm-content.json), the ProviderMetadata, and the
   apiexport-bind RBAC so consumers can subscribe.
 type: application

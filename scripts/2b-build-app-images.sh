@@ -5,23 +5,42 @@
 # local copy lacks. These images are what the ONE SHARED app (3b-shared-app.sh) runs.
 #
 # MT differences vs the standalone build:
-#   (a) tag = $TAG (aitrust-mt), distinct from the single-tenant aitrust-1 build;
+#   (a) tag = $TAG (aitrust), distinct from the single-tenant aitrust-1 build;
 #   (b) shell viewUrls are already RELATIVE in the app code — no sed host hack;
 #   (c) ALSO build+push: users-backend/users-frontend (IAM/roles), openfga-provision (seeds the app's
 #       roles → OpenFGA), keycloak-provision. openfga-provision is the operator's OPENFGA_PROVISION_IMAGE.
 # Frontends baked with PUB=$SHARED_APP_HOST. --skip-build to only retag+push. --skip-clone to reuse the clone.
+#
+# PORTABLE / SELF-CONTAINED: the app source is a git clone the script manages INSIDE the bundle
+# ($BUNDLE/.appsrc, gitignored) — NOT a sibling directory — so this works from any location / any
+# machine, for any colleague who has access to the app repo. Overrides:
+#   APP_GIT_URL  — the app repo (default: the AI-Trust-Services repo).
+#   APP_GIT_REF  — branch/tag to build (default: $APP_GIT_REF from config.env; the MT code currently
+#                  lives on 'mircea-mt2' until it is merged to main).
+#   APP_SRC      — point at an EXISTING local checkout to build from that instead of cloning
+#                  (e.g. your working tree). With APP_SRC set, the script does NOT clone/reset it.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"; load_config
 PUB="https://$SHARED_APP_HOST"
 
 : "${APP_GIT_URL:=https://github.com/AI-Trust-Services/ai-trust-platform.git}"
-: "${APP_GIT_REF:=main}"
-SRC="$BUNDLE/../ai-trust-platform-git"   # bundle-managed clone (the source of truth for installs)
+: "${APP_GIT_REF:=${APP_GIT_REF_DEFAULT:-mircea-mt2}}"   # config.env may export APP_GIT_REF_DEFAULT
+
+# Source of truth for the build. If APP_SRC is given, use that checkout as-is (never clone/reset it).
+# Otherwise clone/refresh into a bundle-internal dir so there is no dependency on sibling layout.
+if [ -n "${APP_SRC:-}" ]; then
+  SRC="$APP_SRC"
+  log "Using provided APP_SRC=$SRC (will NOT clone/reset it)"
+  SKIP_CLONE_INTERNAL=1
+else
+  SRC="$BUNDLE/.appsrc"   # bundle-internal, gitignored — portable, no sibling assumption
+  SKIP_CLONE_INTERNAL=0
+fi
 
 SKIP_BUILD=0; SKIP_CLONE=0
 for a in "$@"; do [ "$a" = "--skip-build" ] && SKIP_BUILD=1; [ "$a" = "--skip-clone" ] && SKIP_CLONE=1; done
 
-if [ "$SKIP_CLONE" -eq 0 ]; then
+if [ "$SKIP_CLONE" -eq 0 ] && [ "${SKIP_CLONE_INTERNAL:-0}" -eq 0 ]; then
   if [ -d "$SRC/.git" ]; then
     log "Updating app git clone ($SRC) to $APP_GIT_REF…"
     git -C "$SRC" fetch --depth 1 origin "$APP_GIT_REF" >/dev/null 2>&1 && git -C "$SRC" reset --hard FETCH_HEAD >/dev/null 2>&1 \
@@ -31,9 +50,9 @@ if [ "$SKIP_CLONE" -eq 0 ]; then
     git clone --depth 1 --branch "$APP_GIT_REF" "$APP_GIT_URL" "$SRC" >/dev/null 2>&1 || die "git clone failed"
   fi
 fi
-[ -d "$SRC/libs/authorization" ] || die "clone missing libs/authorization — is $APP_GIT_REF the right ref? (this is the whole point: build from git, which HAS the roles module)"
+[ -d "$SRC/libs/authorization" ] || die "app source at $SRC missing libs/authorization — is APP_GIT_REF=$APP_GIT_REF right? (build from git, which HAS the roles + tenancy modules)"
 COMMIT="$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo unknown)"
-ok "app source = git $APP_GIT_REF @ $COMMIT (has authorization module)"
+ok "app source = $SRC @ $APP_GIT_REF ($COMMIT) (has authorization + tenancy modules)"
 
 BACKENDS="ai-system-registry monitoring overview alerts compliance decision-trace-analyzer users"
 FRONTENDS="ai-system-registry monitoring overview alerts compliance decision-trace-analyzer users"

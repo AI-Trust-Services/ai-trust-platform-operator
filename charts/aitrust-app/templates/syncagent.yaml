@@ -1,5 +1,5 @@
 {{- /*
-api-syncagent for the AI Trust Platform MT provider. Mirrors the Subscription CR spec-down /
+api-syncagent for the AI Trust Platform provider. Mirrors the Subscription CR spec-down /
 status-up between the kcp provider workspace and this shoot. Modeled on the private-llm-sync-agent
 chart. The agent reads its kcp access from the Secret below (kubeconfig key), and the target cluster
 is THIS cluster (in-cluster config via the operator's SA is not used here — the agent runs with the
@@ -8,16 +8,16 @@ mounted kcp kubeconfig for the kcp side and in-cluster SA for the local side).
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: aitrust-mt-syncagent
+  name: aitrust-syncagent
   namespace: {{ .Release.Namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: aitrust-mt-syncagent
+  name: aitrust-syncagent
 rules:
 # the published CR (mirrored objects land in per-consumer namespaces on this cluster)
-- apiGroups: ["sub.aitrustmt.msp"]
+- apiGroups: ["sub.aitrust.msp"]
   resources: [subscriptions, subscriptions/status]
   verbs: ["*"]
 # read the local CRD to generate the APIResourceSchema published to kcp
@@ -39,21 +39,21 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: aitrust-mt-syncagent
+  name: aitrust-syncagent
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: aitrust-mt-syncagent
+  name: aitrust-syncagent
 subjects:
 - kind: ServiceAccount
-  name: aitrust-mt-syncagent
+  name: aitrust-syncagent
   namespace: {{ .Release.Namespace }}
 ---
 # kcp access kubeconfig for the agent (server rewritten to the provider workspace + :8443).
 apiVersion: v1
 kind: Secret
 metadata:
-  name: aitrust-mt-kcp-kubeconfig
+  name: aitrust-kcp-kubeconfig
   namespace: {{ .Release.Namespace }}
 type: Opaque
 stringData:
@@ -63,18 +63,18 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aitrust-mt-syncagent
+  name: aitrust-syncagent
   namespace: {{ .Release.Namespace }}
-  labels: { app.kubernetes.io/name: aitrust-mt-syncagent }
+  labels: { app.kubernetes.io/name: aitrust-syncagent }
 spec:
   replicas: 1
   selector:
-    matchLabels: { app.kubernetes.io/name: aitrust-mt-syncagent }
+    matchLabels: { app.kubernetes.io/name: aitrust-syncagent }
   template:
     metadata:
-      labels: { app.kubernetes.io/name: aitrust-mt-syncagent }
+      labels: { app.kubernetes.io/name: aitrust-syncagent }
     spec:
-      serviceAccountName: aitrust-mt-syncagent
+      serviceAccountName: aitrust-syncagent
       {{- with .Values.nodeSelector }}
       nodeSelector: {{ toYaml . | nindent 8 }}
       {{- end }}
@@ -86,9 +86,9 @@ spec:
         - --namespace=$(POD_NAMESPACE)
         - --enable-leader-election=true
         - --apiexportendpointslice-ref={{ .Values.exportName }}
-        - --agent-name=aitrust-mt-agent
+        - --agent-name=aitrust-agent
         - --kcp-kubeconfig=/etc/api-syncagent/kcp/kubeconfig
-        - --published-resource-selector=app.kubernetes.io/name=aitrust-mt-syncagent
+        - --published-resource-selector=app.kubernetes.io/name=aitrust-syncagent
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -98,7 +98,7 @@ spec:
       volumes:
       - name: kcp-kubeconfig
         secret:
-          secretName: aitrust-mt-kcp-kubeconfig
+          secretName: aitrust-kcp-kubeconfig
 ---
 # Publish the Subscription CR. The syncagent generates the APIResourceSchema in the provider
 # workspace and mirrors CRs: consumer creates one in their account ws -> lands in a per-consumer
@@ -106,13 +106,13 @@ spec:
 apiVersion: syncagent.kcp.io/v1alpha1
 kind: PublishedResource
 metadata:
-  name: publish-aitrust-mt-subscriptions
+  name: publish-aitrust-subscriptions
   namespace: {{ .Release.Namespace }}
-  labels: { app.kubernetes.io/name: aitrust-mt-syncagent }
+  labels: { app.kubernetes.io/name: aitrust-syncagent }
 spec:
   resource:
     kind: Subscription
-    apiGroup: sub.aitrustmt.msp
+    apiGroup: sub.aitrust.msp
     version: v1alpha1
   naming:
     namespace: "{{`{{ .ClusterName }}`}}"

@@ -1,6 +1,6 @@
 #!/bin/bash
-# 3-provider.sh — register the AI Trust MT provider on the mesh.
-#   1) provider workspace $PROVIDER_WS (root:providers:ai-trust-mt)
+# 3-provider.sh — register the AI Trust Platform provider on the mesh.
+#   1) provider workspace $PROVIDER_WS (root:providers:ai-trust)
 #   2) PM chart INTO that workspace FIRST (creates APIExport + APIExportEndpointSlice + CC + RBAC) —
 #      the syncagent needs the EndpointSlice at startup, else it crash-loops.
 #   3) workload chart on the shoot (MT operator + syncagent + portal nginx), operator image pinned.
@@ -12,8 +12,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"; loa
 setup_kcp; kcp_portforward
 trap 'pkill -f "port-forward.*root-proxy.*6443" 2>/dev/null || true' EXIT
 
-# 1. provider workspace (idempotent). PROVIDER_WS = root:providers:ai-trust-mt
-PARENT="${PROVIDER_WS%:*}"; WSNAME="${PROVIDER_WS##*:}"     # root:providers , ai-trust-mt
+# 1. provider workspace (idempotent). PROVIDER_WS = root:providers:ai-trust
+PARENT="${PROVIDER_WS%:*}"; WSNAME="${PROVIDER_WS##*:}"     # root:providers , ai-trust
 kc "$PARENT" get workspace "$WSNAME" >/dev/null 2>&1 || {
   kc root get workspace providers >/dev/null 2>&1 || cat <<'EOF' | kc root apply --validate=false -f - >/dev/null
 apiVersion: tenancy.kcp.io/v1alpha1
@@ -47,7 +47,7 @@ ok "aitrust-pm installed (APIExport + ContentConfiguration + ProviderMetadata + 
 
 # 3. workload chart on the shoot (MT operator + syncagent + portal nginx). Embed the kcp-admin kubeconfig,
 #    rewriting its server to the provider workspace + :8443 so the syncagent syncs from the right ws.
-log "Installing aitrust-mt-app (workload) on the shoot into ns $PROVIDER_NS…"
+log "Installing aitrust-app (workload) on the shoot into ns $PROVIDER_NS…"
 # build an adminContent kubeconfig whose server points at the provider workspace over the in-cluster :8443.
 # ALSO strip the CA + tls-server-name and set insecure-skip-tls-verify: the syncagent's sync controller
 # dials the APIExport virtual-workspace advertised as https://root.kcp.localhost:8443/... but the mesh cert
@@ -71,7 +71,7 @@ for ln in lines:
     out.append(ln)
 open(p, 'w').write('\n'.join(out) + '\n')
 PY
-helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-mt-app "$HERE/../$AITRUST_APP_CHART" \
+helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_APP_CHART" \
   --namespace "$PROVIDER_NS" --create-namespace \
   --set operator.image.repository="$OPERATOR_IMAGE" \
   --set operator.image.tag="$OPERATOR_TAG" \
@@ -81,11 +81,11 @@ helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-mt-app "$HERE/../$AITRU
   --set operator.mspWorkerLabel="$MSP_WORKER_LABEL" \
   --set kcpKubeconfig.inClusterServerUrl="$KCP_INCLUSTER_URL" \
   --set-file kcpKubeconfig.adminContent="$KC_WS" \
-  >/dev/null 2>&1 || warn "aitrust-mt-app helm returned non-zero — check: helm --kubeconfig \$SHOOT get -n $PROVIDER_NS"
+  >/dev/null 2>&1 || warn "aitrust-app helm returned non-zero — check: helm --kubeconfig \$SHOOT get -n $PROVIDER_NS"
 ok "workload chart installed (MT operator + syncagent + portal nginx in $PROVIDER_NS)"
 
 # 4. syncagent hostAlias + bind authenticated.
-patch_syncagent_hostalias "$PROVIDER_NS" aitrust-mt-syncagent
+patch_syncagent_hostalias "$PROVIDER_NS" aitrust-syncagent
 bind_authenticated "$PROVIDER_WS"
 
 # 5. wait until the APIExport publishes the CR.
@@ -93,4 +93,4 @@ log "Waiting for APIExport $EXPORT_NAME to publish subscriptions…"
 have_res(){ kc "$PROVIDER_WS" get apiexport "$EXPORT_NAME" \
   -o jsonpath='{range .spec.resources[*]}{.name}{"\n"}{end}' 2>/dev/null | grep -q '^subscriptions$'; }
 wait_for 300 10 "APIExport has subscriptions" have_res || warn "resource not yet published — check syncagent logs"
-ok "AI Trust MT provider ready"
+ok "AI Trust Platform provider ready"

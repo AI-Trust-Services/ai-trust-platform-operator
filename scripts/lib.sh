@@ -1,5 +1,5 @@
 #!/bin/bash
-# lib.sh — shared helpers for the AI Trust MT (multi-tenant) MSP provider deploy (targets shoot ai-trust-1).
+# lib.sh — shared helpers for the AI Trust Platform MSP provider deploy (targets shoot ai-trust-1).
 # Reuses the Standard_MSP_Demo mesh helpers (kc, ws_kubeconfig, patch_syncagent_hostalias,
 # bind_authenticated, mint, kcp_portforward) + a render() for the ingress templates.
 # All identifiers come from prerequisites/config.env (MT model: ONE shared app + per-tenant Subscriptions).
@@ -23,18 +23,18 @@ load_config(){
   set -a; source "$PREREQ/config.env"; set +a
   : "${MESH_NS:=platform-mesh-system}"
   : "${GATEWAY_NS:=platform-mesh-system}"; : "${GATEWAY_NAME:=k8sapi-gateway}"
-  : "${WORKER_POOL:=ai-trust-mt}"; : "${WORKER_ZONE:=eu-de-1b}"; : "${WORKER_MIN:=1}"; : "${WORKER_MAX:=4}"
+  : "${WORKER_POOL:=ai-trust}"; : "${WORKER_ZONE:=eu-de-1b}"; : "${WORKER_MIN:=1}"; : "${WORKER_MAX:=4}"
   : "${WORKER_TYPE:=m_c16_m128_v2}"
-  : "${WORKER_IMAGE_VERSION:=}"; : "${MSP_WORKER_LABEL:=ai-trust-mt}"
+  : "${WORKER_IMAGE_VERSION:=}"; : "${MSP_WORKER_LABEL:=ai-trust}"
   : "${KCP_INCLUSTER_URL:=https://frontproxy-front-proxy.platform-mesh-system.svc.cluster.local:8443}"
-  : "${PROVIDER_WS:=root:providers:ai-trust-mt}"; : "${EXPORT_NAME:=sub.aitrustmt.msp}"
-  : "${PROVIDER_NS:=aitrust-mt-msp}"; : "${CONTENT_SCHEME:=http}"
-  : "${AITRUST_CONTENT_HOST:=aitrust-mt-portal.aitrust-mt-msp.svc.cluster.local}"
-  : "${AITRUST_APP_CHART:=charts/aitrust-mt-app}"; : "${AITRUST_PM_CHART:=charts/aitrust-mt-pm-app}"
-  : "${OPERATOR_IMAGE:=mirceacraciun795/aitrust-mt-operator}"; : "${OPERATOR_TAG:=v1}"
-  : "${REGISTRY:=mirceacraciun795}"; : "${TAG:=aitrust-mt}"
-  : "${SHARED_APP_HOST:=ai-trust-mt.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu}"
-  : "${ORG_NAME:=aitrustmt}"; : "${ACCOUNT_NAME:=tenant}"; : "${INSTANCE_NAME:=my-subscription}"; : "${INSTANCE_PLAN:=standard}"
+  : "${PROVIDER_WS:=root:providers:ai-trust}"; : "${EXPORT_NAME:=sub.aitrust.msp}"
+  : "${PROVIDER_NS:=aitrust-msp}"; : "${CONTENT_SCHEME:=http}"
+  : "${AITRUST_CONTENT_HOST:=aitrust-portal.aitrust-msp.svc.cluster.local}"
+  : "${AITRUST_APP_CHART:=charts/aitrust-app}"; : "${AITRUST_PM_CHART:=charts/aitrust-pm-app}"
+  : "${OPERATOR_IMAGE:=mirceacraciun795/aitrust-operator}"; : "${OPERATOR_TAG:=v1}"
+  : "${REGISTRY:=mirceacraciun795}"; : "${TAG:=aitrust}"
+  : "${SHARED_APP_HOST:=ai-trust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu}"
+  : "${ORG_NAME:=aitrust}"; : "${ACCOUNT_NAME:=tenant}"; : "${INSTANCE_NAME:=my-subscription}"; : "${INSTANCE_PLAN:=standard}"
   [ "${SHOOT_NAME:-}" = "ai-trust-1" ] || die "SHOOT_NAME is '${SHOOT_NAME:-}' — this bundle only targets ai-trust-1."
   export SHOOT_NAME PROJECT GARDENER_API MESH_NS GATEWAY_NS GATEWAY_NAME KCP_INCLUSTER_URL
   export WORKER_TYPE WORKER_POOL WORKER_ZONE WORKER_MIN WORKER_MAX WORKER_IMAGE_VERSION MSP_WORKER_LABEL

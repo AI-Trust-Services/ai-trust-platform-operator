@@ -69,6 +69,7 @@ spec:
             - { name: KEYCLOAK_ADMIN_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: KEYCLOAK_ADMIN_PASSWORD } } }
             - { name: APP_PUBLIC_URL, valueFrom: { configMapKeyRef: { name: app-config, key: APP_PUBLIC_URL } } }
             - { name: KEYCLOAK_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: app-secrets, key: KEYCLOAK_CLIENT_SECRET } } }
+            - { name: USERS_BACKEND_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: app-secrets, key: USERS_BACKEND_CLIENT_SECRET } } }
             - { name: APP_ADMIN_USERNAME, valueFrom: { secretKeyRef: { name: app-secrets, key: APP_ADMIN_USERNAME } } }
             - { name: APP_ADMIN_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: APP_ADMIN_PASSWORD } } }
 ---
