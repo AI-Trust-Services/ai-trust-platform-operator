@@ -11,7 +11,7 @@ spec:
       containers:
         - name: ai-system-registry-backend
           image: aitrust/ai-system-registry-backend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -46,7 +46,7 @@ spec:
       containers:
         - name: monitoring-backend
           image: aitrust/monitoring-backend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -85,7 +85,7 @@ spec:
       containers:
         - name: overview-backend
           image: aitrust/overview-backend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -120,7 +120,7 @@ spec:
       containers:
         - name: alerts-backend
           image: aitrust/alerts-backend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -159,7 +159,7 @@ spec:
       containers:
         - name: compliance-backend
           image: aitrust/compliance-backend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -200,7 +200,7 @@ spec:
       containers:
         - name: decision-trace-analyzer-backend
           image: aitrust/decision-trace-analyzer-backend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -239,7 +239,7 @@ spec:
       containers:
         - name: users-backend
           image: aitrust/users-backend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
@@ -286,7 +286,7 @@ spec:
       containers:
         - name: users-frontend
           image: aitrust/users-frontend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -310,7 +310,7 @@ spec:
       containers:
         - name: ai-system-registry-frontend
           image: aitrust/ai-system-registry-frontend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -334,7 +334,7 @@ spec:
       containers:
         - name: monitoring-frontend
           image: aitrust/monitoring-frontend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -358,7 +358,7 @@ spec:
       containers:
         - name: overview-frontend
           image: aitrust/overview-frontend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -382,7 +382,7 @@ spec:
       containers:
         - name: alerts-frontend
           image: aitrust/alerts-frontend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -406,7 +406,7 @@ spec:
       containers:
         - name: compliance-frontend
           image: aitrust/compliance-frontend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
@@ -430,7 +430,7 @@ spec:
       containers:
         - name: decision-trace-analyzer-frontend
           image: aitrust/decision-trace-analyzer-frontend:kind
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports: [{ containerPort: 80 }]
           readinessProbe:
             httpGet: { path: /, port: 80 }
