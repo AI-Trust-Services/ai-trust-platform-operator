@@ -16,6 +16,9 @@ spec:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/registry" }
+            - { name: TENANCY_MODE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_MODE } } }
+            - { name: TENANCY_JWKS_ISSUER_BASE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_JWKS_ISSUER_BASE } } }
+            - { name: TENANT_CLAIM, valueFrom: { configMapKeyRef: { name: app-config, key: TENANT_CLAIM, optional: true } } }
             - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
             - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
             - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
@@ -48,6 +51,9 @@ spec:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/monitoring" }
+            - { name: TENANCY_MODE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_MODE } } }
+            - { name: TENANCY_JWKS_ISSUER_BASE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_JWKS_ISSUER_BASE } } }
+            - { name: TENANT_CLAIM, valueFrom: { configMapKeyRef: { name: app-config, key: TENANT_CLAIM, optional: true } } }
             - { name: CLICKHOUSE_HOST, value: clickhouse }
             - { name: CLICKHOUSE_PORT, value: "8123" }
             - { name: CLICKHOUSE_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_USER } } }
@@ -84,6 +90,9 @@ spec:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/overview" }
+            - { name: TENANCY_MODE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_MODE } } }
+            - { name: TENANCY_JWKS_ISSUER_BASE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_JWKS_ISSUER_BASE } } }
+            - { name: TENANT_CLAIM, valueFrom: { configMapKeyRef: { name: app-config, key: TENANT_CLAIM, optional: true } } }
             - { name: OPENFGA_URL, value: "http://openfga.platform-mesh-system.svc.cluster.local:8080" }
             - { name: OPENFGA_STORE_ID, value: "__OPENFGA_STORE_ID__" }
             - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
@@ -116,6 +125,9 @@ spec:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/alerts" }
+            - { name: TENANCY_MODE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_MODE } } }
+            - { name: TENANCY_JWKS_ISSUER_BASE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_JWKS_ISSUER_BASE } } }
+            - { name: TENANT_CLAIM, valueFrom: { configMapKeyRef: { name: app-config, key: TENANT_CLAIM, optional: true } } }
             - { name: CLICKHOUSE_HOST, value: clickhouse }
             - { name: CLICKHOUSE_PORT, value: "8123" }
             - { name: CLICKHOUSE_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_USER } } }
@@ -152,6 +164,9 @@ spec:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/compliance" }
+            - { name: TENANCY_MODE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_MODE } } }
+            - { name: TENANCY_JWKS_ISSUER_BASE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_JWKS_ISSUER_BASE } } }
+            - { name: TENANT_CLAIM, valueFrom: { configMapKeyRef: { name: app-config, key: TENANT_CLAIM, optional: true } } }
             - { name: MINIO_ENDPOINT, valueFrom: { configMapKeyRef: { name: app-config, key: MINIO_ENDPOINT } } }
             - { name: MINIO_PUBLIC_ENDPOINT, valueFrom: { configMapKeyRef: { name: app-config, key: MINIO_PUBLIC_ENDPOINT } } }
             - { name: MINIO_ROOT_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: MINIO_ROOT_USER } } }
@@ -190,6 +205,9 @@ spec:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/dta" }
+            - { name: TENANCY_MODE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_MODE } } }
+            - { name: TENANCY_JWKS_ISSUER_BASE, valueFrom: { configMapKeyRef: { name: app-config, key: TENANCY_JWKS_ISSUER_BASE } } }
+            - { name: TENANT_CLAIM, valueFrom: { configMapKeyRef: { name: app-config, key: TENANT_CLAIM, optional: true } } }
             - { name: CLICKHOUSE_HOST, value: clickhouse }
             - { name: CLICKHOUSE_PORT, value: "8123" }
             - { name: CLICKHOUSE_USER, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_USER } } }
@@ -226,7 +244,10 @@ spec:
             - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
             - { name: ALLOWED_ORIGINS, valueFrom: { configMapKeyRef: { name: app-config, key: ALLOWED_ORIGINS } } }
             - { name: ROOT_PATH, value: "/api/users" }
-            - { name: KEYCLOAK_URL, value: "http://keycloak:8080/keycloak" }
+            # jwt/MT mode: per-tenant realms live in the MESH keycloak, so users-backend must talk to it
+            # (admin token + admin_client both use KEYCLOAK_URL). The MT overlay sets USERS_KEYCLOAK_URL to
+            # the mesh keycloak; single-tenant leaves it unset → falls back to the app keycloak below.
+            - { name: KEYCLOAK_URL, valueFrom: { configMapKeyRef: { name: app-config, key: USERS_KEYCLOAK_URL, optional: true } } }
             - { name: KEYCLOAK_REALM, value: "ai-trust" }
             - { name: USERS_BACKEND_CLIENT_ID, value: "users-backend" }
             - { name: USERS_BACKEND_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: app-secrets, key: USERS_BACKEND_CLIENT_SECRET } } }
