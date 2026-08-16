@@ -1,4 +1,4 @@
-# Design — AI Trust Platform MT uses the Mesh Keycloak + OpenFGA (per-tenant realm + store)
+# Design — AI Trust Platform uses the Mesh Keycloak + OpenFGA (per-tenant realm + store)
 
 Status: **DESIGN / documented for later implementation** (not built yet). Supersedes the app's own
 per-instance Keycloak. Author basis: live read-only investigation of the mesh IdP on shoot `ai-trust-1`
@@ -57,10 +57,10 @@ The sections below (mesh realm/store facts, auth binding, integration seam) rema
 
 ## ADDENDUM 2 (2026-08-13) — OpenFGA store scoping DECISION: ONE shared app store, RLS isolates data
 
-**Decision (user-confirmed):** the shared MT app uses **ONE app OpenFGA store `ai-trust-mt`** in the shared
+**Decision (user-confirmed):** the shared MT app uses **ONE app OpenFGA store `ai-trust`** in the shared
 mesh OpenFGA instance — NOT one store per tenant. Seeded ONCE at deploy time by `openfga-provision` run
 from `3b-shared-app.sh` (against `OPENFGA_URL=http://openfga.platform-mesh-system.svc.cluster.local:8080`,
-`OPENFGA_STORE_NAME=ai-trust-mt`). The resolved store id is written to the app backends' `OPENFGA_STORE_ID`
+`OPENFGA_STORE_NAME=ai-trust`). The resolved store id is written to the app backends' `OPENFGA_STORE_ID`
 env (the app's `openfga_client` prefers the env over the `/config/store_id` file, so no shared volume is
 needed in k8s).
 
@@ -87,7 +87,7 @@ the operator is retained for a future per-tenant-store variant but is NOT used i
 
 ## 1. The model (confirmed with the user)
 
-- The AI Trust Platform MT app **uses the Mesh's Keycloak + OpenFGA** — it does **not** run its own.
+- The AI Trust Platform app **uses the Mesh's Keycloak + OpenFGA** — it does **not** run its own.
 - There is **ONE shared mesh Keycloak** and **ONE shared mesh OpenFGA**.
 - **Each tenant is fully isolated inside them**: its **own Keycloak realm** + its **own OpenFGA store**.
   Tenants never interact — separate realms (separate user sets, separate tokens) and separate stores
@@ -108,9 +108,9 @@ below), keyed to the same account id we already use as the app's `tenant_id`.
 postgres-backed); plus `iam-service`, `keycloak-operator`, `account-operator`, `rebac-authz-webhook`.
 
 **Realm per ORG** (not per child-account, not one-shared-realm-with-groups). Real realms found:
-`welcome` (bootstrap), `master`, and one per org: `demo, aitrustdemo, aitrustg2, aitrustmt, poc, …`. The
-realm name == the org Account name. Realm `aitrustmt` already exists (matches our `ORG_NAME=aitrustmt`) with
-a confidential portal client (redirect `https://aitrustmt.ai-trust-1.…/*`) and a public dev client.
+`welcome` (bootstrap), `master`, and one per org: `demo, aitrustdemo, aitrustg2, aitrust, poc, …`. The
+realm name == the org Account name. Realm `aitrust` already exists (matches our `ORG_NAME=aitrust`) with
+a confidential portal client (redirect `https://aitrust.ai-trust-1.…/*`) and a public dev client.
 
 **OpenFGA store per ORG.** Stores are `stores.core.platform-mesh.io` CRs in the kcp `root:orgs` workspace
 (one per org, name == org). Each Store CR carries `spec.coreModule` (the OpenFGA authz-model DSL) +
@@ -171,7 +171,7 @@ gets registered per tenant by, at subscribe/provision time:
    tenant's app host) with a `tenant_id` claim mapper. (Optionally, if any roles must be Keycloak realm
    roles, create them here — but prefer OpenFGA per the mesh convention.)
 2. **Store side:** contribute the app's roles as a `groupResource` block (e.g.
-   `sub.aitrustmt.msp/Subscription` or an app-scoped resource) into the mesh role definition so the tenant's
+   `sub.aitrust.msp/Subscription` or an app-scoped resource) into the mesh role definition so the tenant's
    Store model includes app roles; then write `assignee` tuples binding the tenant's users to app roles.
    - Cleanest: extend the **`iam-service-roles` roles.yaml** with the app's `groupResource` (a mesh-level,
      reviewed change) so EVERY org store gets the app types; per-tenant we then only write user→role tuples.
@@ -192,7 +192,7 @@ creation) + OpenFGA write. This replaces the `tenant-provision-job.tmpl` approac
   is not valid for realm B's app client (audience/issuer mismatch).
 - **AuthZ:** separate OpenFGA stores ⇒ a tuple in store A is invisible to a check against store B.
 - **Data:** unchanged from Stage A — `tenant_id` (= account id) + Postgres RLS + ClickHouse/MinIO scoping.
-- **Compute:** the shared app runs on the dedicated `ai-trust-mt` worker pool; per-tenant isolation is data
+- **Compute:** the shared app runs on the dedicated `ai-trust` worker pool; per-tenant isolation is data
   + identity, not separate app copies.
 
 ---
@@ -214,7 +214,7 @@ Mesh objects (ns platform-mesh-system): `keycloak-0`, secret `keycloak-admin`, s
 (path `/keycloak`); `openfga` svc `:8080/:8081`; configmap `iam-service-roles`; deploys `iam-service` v0.18.0
 (`--roles-file-path=/roles/roles.yaml --jwt-user-id-claim=email`), `account-operator` v0.15.4,
 `rebac-authz-webhook` v0.10.1 (`--openfga-addr=openfga:8081`). kcp `root:orgs`:
-`stores.core.platform-mesh.io` (per-org, e.g. `aitrustmt` storeId `01KZVNHGWP27BANHPKTB3RNWEB`),
+`stores.core.platform-mesh.io` (per-org, e.g. `aitrust` storeId `01KZVNHGWP27BANHPKTB3RNWEB`),
 `workspaceauthenticationconfigurations.tenancy.kcp.io` (per-org, issuer `…/keycloak/realms/<org>`),
-`invites.core.platform-mesh.io`. Realm names: welcome, master, demo, aitrustdemo, aitrustg2, aitrustmt, poc.
+`invites.core.platform-mesh.io`. Realm names: welcome, master, demo, aitrustdemo, aitrustg2, aitrust, poc.
 Investigation scripts: `Standard_AiTrust_MT_MSP/.state/q*.sh`.

@@ -1,6 +1,6 @@
-# AI Trust Platform **MT** (Multi-Tenant) as an MSP Provider on `ai-trust-1`
+# AI Trust Platform as an MSP Provider on `ai-trust-1`
 
-**Version:** 4 (tag `v0.4`) · **Status:** multi-tenant MSP variant is the content of `main`.
+**Version:** 3 (tag `v0.3`) · **Status:** multi-tenant MSP variant is the content of `main`.
 See [`CHANGELOG.md`](CHANGELOG.md) for what changed; the version string lives in [`VERSION`](VERSION).
 
 Publishes the **AI Trust Platform** app (multi-tenant Stage-A build from `../ai-trust-platform-main`) as a
@@ -14,8 +14,8 @@ A customer sees a tile in the portal, clicks **Enable**, and creates a **Subscri
 - **Isolation:** `tenant_id` + Postgres **RLS** + per-tenant ClickHouse/MinIO scoping, all enforced inside
   the shared app (Stage A). The auth boundary is the per-tenant realm; the data boundary is `tenant_id`.
 - **Fully isolated from the existing `../Standard_AiTrust_MSP` (full-copy) provider** — different API group
-  (`sub.aitrustmt.msp`), workspace (`root:providers:ai-trust-mt`), namespace (`aitrust-mt-msp`), worker pool
-  (`ai-trust-mt`), and image tag (`aitrust-mt`). The two providers never collide.
+  (`sub.aitrust.msp`), workspace (`root:providers:ai-trust`), namespace (`aitrust-msp`), worker pool
+  (`ai-trust`), and image tag (`aitrust`). The two providers never collide.
 - **Runs on the stock Platform Mesh already installed on `ai-trust-1`** (`../Standard_Platform_Mesh`).
   Hard rail: this bundle only targets `ai-trust-1`; never creates/deletes a shoot.
 
@@ -27,9 +27,9 @@ Two Helm charts (like every mesh provider) + the shared app + a subscription ope
 
 | Chart / component | Installed where | Contains |
 |-------------------|-----------------|----------|
-| **`charts/aitrust-mt-app`** (workload) | shoot ns `aitrust-mt-msp` | the **MT operator** (watches `Subscription`, provisions a per-tenant realm), the **api-syncagent** (mirrors the CR between the consumer's kcp workspace and the shoot), and the **portal nginx** serving `/pm-content.json` |
-| **`charts/aitrust-mt-pm-app`** (kcp) | workspace `root:providers:ai-trust-mt` | **APIExport** `sub.aitrustmt.msp`, **ContentConfiguration**, **ProviderMetadata**, **apiexport-bind** RBAC |
-| **shared app** (`3b-shared-app.sh`) | shoot ns `aitrust-mt-msp` | the ONE multi-tenant AI Trust stack (`TENANCY_MODE=jwt`, RLS app role), reached at `SHARED_APP_HOST`; all tenants share it |
+| **`charts/aitrust-app`** (workload) | shoot ns `aitrust-msp` | the **MT operator** (watches `Subscription`, provisions a per-tenant realm), the **api-syncagent** (mirrors the CR between the consumer's kcp workspace and the shoot), and the **portal nginx** serving `/pm-content.json` |
+| **`charts/aitrust-pm-app`** (kcp) | workspace `root:providers:ai-trust` | **APIExport** `sub.aitrust.msp`, **ContentConfiguration**, **ProviderMetadata**, **apiexport-bind** RBAC |
+| **shared app** (`3b-shared-app.sh`) | shoot ns `aitrust-msp` | the ONE multi-tenant AI Trust stack (`TENANCY_MODE=jwt`, RLS app role), reached at `SHARED_APP_HOST`; all tenants share it |
 
 The **MT operator** (`operator/`, Go, controller-runtime) embeds **only** `manifests/*.tmpl` (the
 tenant-provision Job template) via `embed.FS`. Per `Subscription` it derives the tenant id from the mesh
@@ -47,7 +47,7 @@ shared app → status + tenant URL flow back → open the tenant URL and log in 
 
 **No to both.** There is exactly **one** app deployment. Create only adds a **tenant realm** to the shared
 Keycloak and flips the `Subscription` to Ready — no new namespace, no new stack, no new node. All tenants
-run on the shared app pinned to the single **`ai-trust-mt`** pool (`m_c16_m128_v2`, 128 Gi). The Gardener
+run on the shared app pinned to the single **`ai-trust`** pool (`m_c16_m128_v2`, 128 Gi). The Gardener
 cluster-autoscaler only adds a node if the shared app's own load exceeds one node (min 1, max 4).
 
 ```
@@ -63,7 +63,7 @@ Portal "Create"  (GraphQL mutation createSubscription)
       ▼
 3. MT operator (watching the CR) reconciles:
      • tenantId = cr.Namespace (the consumer cluster id);  realm = t-<tenantId>
-     • stamps a one-shot tenant-provision Job (PROVISION_IMAGE = aitrust-keycloak-provision:aitrust-mt)
+     • stamps a one-shot tenant-provision Job (PROVISION_IMAGE = aitrust-keycloak-provision:aitrust)
        that creates the per-tenant realm in the SHARED Keycloak (tokens carry tenant_id)
      • writes status.url / status.realm / status.tenantId back (mirrored up to the portal)
       │
@@ -79,7 +79,7 @@ Portal "Create"  (GraphQL mutation createSubscription)
 ## The CRD
 
 ```yaml
-apiVersion: sub.aitrustmt.msp/v1alpha1
+apiVersion: sub.aitrust.msp/v1alpha1
 kind: Subscription
 metadata: { name: my-subscription }
 spec:
@@ -98,30 +98,52 @@ to size, and the tenant URL is derived (`<tenantId>-<name>.<shared-suffix>`, rou
    `MSYS_NO_PATHCONV=1 wsl.exe -d Ubuntu -- bash '/mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MT_MSP/scripts/deploy.sh'`
    (worker pool ~10 min + operator/app image build+push + charts + shared app + one subscription ~1-2 min)
 3. **See the tile / open the tenant** — step 7 prints the shared app host, the tenant URL + realm, and the
-   portal nav path (account → Namespaces → default → expand **"AI Trust Platform MT"**).
+   portal nav path (account → Namespaces → default → expand **"AI Trust Platform"**).
 
 Reset (remove subscriptions + shared app + provider, keep the mesh): `bash scripts/reset.sh`
-(`--pool` also drops the `ai-trust-mt` pool).
+(`--pool` also drops the `ai-trust` pool).
 
 ## Steps (`deploy.sh` runs 0 → 1 → 2 → 2b → 3 → 3b → 4 → 5 → 6 → 7)
 | Step | Does |
 |------|------|
 | `0-check-prerequisites` | tools, garden reachable, mesh Ready, charts lint, docker login |
-| `1-worker-pool` | dedicated **`ai-trust-mt`** pool (`m_c16_m128_v2`, 128 Gi, label `workload=ai-trust-mt`); the shared app + operator run here |
-| `2-build-operator-image` | build + push `aitrust-mt-operator:v1` (embeds only `manifests/*.tmpl`) |
-| `2b-build-app-images` | build + push the **MT app images** from `../ai-trust-platform-main` at tag **`aitrust-mt`** (incl. `aitrust-keycloak-provision`, the operator's PROVISION_IMAGE) |
+| `1-worker-pool` | dedicated **`ai-trust`** pool (`m_c16_m128_v2`, 128 Gi, label `workload=ai-trust`); the shared app + operator run here |
+| `2-build-operator-image` | build + push `aitrust-operator:v1` (embeds only `manifests/*.tmpl`) |
+| `2b-build-app-images` | build + push the **MT app images** from `../ai-trust-platform-main` at tag **`aitrust`** (incl. `aitrust-keycloak-provision`, the operator's PROVISION_IMAGE) |
 | `3-provider` | provider ws + **PM chart first** + workload chart + syncagent hostAlias + bind_authenticated; waits APIExport publishes `subscriptions` |
-| `3b-shared-app` | deploy the **ONE shared MT app** (`TENANCY_MODE=jwt`, RLS app role) at `SHARED_APP_HOST`, pinned to `ai-trust-mt` |
+| `3b-shared-app` | deploy the **ONE shared MT app** (`TENANCY_MODE=jwt`, RLS app role) at `SHARED_APP_HOST`, pinned to `ai-trust` |
 | `4-consumer-workspace` | org + child Account (SAR-poll + Store-wait + webhook-roll, ported from the MSP demo) |
-| `5-bind-apis` | APIBinding to `sub.aitrustmt.msp` (claims secrets/namespaces/events) — the scripted "Enable" |
+| `5-bind-apis` | APIBinding to `sub.aitrust.msp` (claims secrets/namespaces/events) — the scripted "Enable" |
 | `6-create-subscription` | create one `Subscription` in the account |
 | `7-verify-portal` | `/pm-content.json` 200 + ContentConfiguration Ready + `Subscription status.ready`; prints tenant URL + realm |
 
 ## Requirements
 - The stock mesh on `ai-trust-1` (from `../Standard_Platform_Mesh`), Ready.
-- The Stage-A multi-tenant app source at `../ai-trust-platform-main` (step 2b builds the `aitrust-mt` images).
+- App source is **cloned from git** by `2b-build-app-images.sh` (repo `github.com/AI-Trust-Services/ai-trust-platform`,
+  branch `APP_GIT_REF_DEFAULT` in config.env, currently `mircea-mt2`). Override per-run with `APP_GIT_REF=...` or
+  build from a local checkout with `APP_SRC=/path`. (The old `../ai-trust-platform-main` local path is NOT used.)
 - `prerequisites/`: `config.env` (source of truth), `garden-kubeconfig.yaml`, `login.sh`, `tls.*`.
   WSL tools: kubectl, helm, jq, docker, python3.
+
+## Baked-in fixes (a fresh deploy should be clean)
+These were bugs a first-from-scratch deploy hit; all are now in the bundle so `deploy.sh` on a clean cluster works:
+- `TENANCY_JWKS_ISSUER_BASE` set in `config/shared-app/02-secret-config-mt.tmpl` + wired to users-backend in
+  `config/k8s-app/30-app.yaml` (app fail-fasts without it when `TENANCY_MODE=jwt`).
+- `USERS_BACKEND_CLIENT_SECRET` env added to the keycloak-provision Job (`config/k8s-app/20-jobs.yaml`).
+- Keycloak `lifecycle.postStart` sets master realm `sslRequired=NONE` (`config/k8s-app/10-infra.yaml`) — pod IPs
+  are CGNAT/100.64 which Keycloak treats as "external" → HTTP admin token 403'd without this.
+- `3b-shared-app.sh` OpenFGA store-id resolution: store name `aitrust`, paginated exact-match, and the store id is
+  injected into **the operator too** (not just backends) so `seedAdminTuple` runs → a tenant admin gets
+  `platform_administrator` → the shell nav shows ALL sections (a missing store id → nav shows only Overview).
+- `patch_syncagent_hostalias` uses a merge-patch (idempotent) so `root.kcp.localhost`→frontproxy is always set.
+- **Clean re-deploy:** `reset.sh` now also sweeps cluster-scoped leftovers (ClusterRoles, PublishedResources)
+  that would otherwise block `helm install` / poison the syncagent. On a cluster that hosted a prior provider,
+  run `reset.sh` before re-deploying.
+
+## Naming (post-rename, 2026-08-16)
+Display name **"AI Trust Platform"** (no "MT"). Identifiers: ns `aitrust-msp`, API group `sub.aitrust.msp`,
+kcp ws `root:providers:ai-trust`, worker pool `ai-trust`, host `ai-trust[-<org>].<suffix>`, operator image
+`aitrust-operator`. The **ops console** runs in its own ns `aitrust-ops` (repo `operation_provider`).
 
 ## Files
 ```
@@ -129,8 +151,8 @@ Standard_AiTrust_MT_MSP/
 ├── README.md · msp_aitrust_mt_howto.md
 ├── prerequisites/ config.env · garden-kubeconfig.yaml · login.sh · tls.*
 ├── operator/       main.go · go.mod · Dockerfile · manifests/ (tenant-provision-job.tmpl only)
-├── charts/aitrust-mt-app/     (workload: Subscription CRD, operator, syncagent, portal nginx)
-├── charts/aitrust-mt-pm-app/  (kcp: APIExport, ContentConfiguration, ProviderMetadata, RBAC)
+├── charts/aitrust-app/     (workload: Subscription CRD, operator, syncagent, portal nginx)
+├── charts/aitrust-pm-app/  (kcp: APIExport, ContentConfiguration, ProviderMetadata, RBAC)
 ├── config/k8s-app/   (the gold app manifests — rendered by 3b for the shared app)
 ├── config/shared-app/  (MT overlay: pg-init RLS role + secret-config TENANCY_MODE=jwt)
 ├── config/ingress/   (gateway-listener + httproute templates, for reference)
@@ -147,5 +169,5 @@ Standard_AiTrust_MT_MSP/
 
 ## Deploy behavior
 - **`imagePullPolicy: Always`** on all app / job / worker containers (and the operator) — deploys always
-  pull the latest build under the current image tag (`aitrust-mt`), so a rebuild pushed under the same tag
+  pull the latest build under the current image tag (`aitrust`), so a rebuild pushed under the same tag
   is picked up on the next pod start rather than serving a node-cached layer.

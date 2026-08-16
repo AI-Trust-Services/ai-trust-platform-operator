@@ -117,10 +117,13 @@ patch_syncagent_hostalias(){
   done
   [ -n "$target" ] || target="deployment/${fallback}"
   sk -n "$ns" get "$target" >/dev/null 2>&1 || { warn "syncagent deploy not found in $ns"; return 0; }
-  sk -n "$ns" patch "$target" --type=json -p \
-    "[{\"op\":\"add\",\"path\":\"/spec/template/spec/hostAliases\",\"value\":[{\"ip\":\"$fpip\",\"hostnames\":[\"root.kcp.localhost\",\"${KCP_HOST}\"]}]}]" >/dev/null 2>&1 \
+  # merge-patch (idempotent): sets hostAliases whether or not the field already exists. A json `add`
+  # to /spec/template/spec/hostAliases FAILS if the array is already present (re-run / pre-existing) —
+  # that previously left the syncagent unable to resolve root.kcp.localhost → sync stalled silently.
+  sk -n "$ns" patch "$target" --type=merge -p \
+    "{\"spec\":{\"template\":{\"spec\":{\"hostAliases\":[{\"ip\":\"$fpip\",\"hostnames\":[\"root.kcp.localhost\",\"${KCP_HOST}\"]}]}}}}" >/dev/null 2>&1 \
     && ok "hostAlias root.kcp.localhost,${KCP_HOST} → $fpip on $ns/$target" \
-    || warn "hostAlias patch on $ns/$target returned non-zero (may already be set)"
+    || warn "hostAlias patch on $ns/$target returned non-zero"
   sk -n "$ns" rollout restart "$target" >/dev/null 2>&1 || true
   KUBECONFIG="$SHOOT_KUBECONFIG" kubectl -n "$ns" rollout status "$target" --timeout=150s >/dev/null 2>&1 || true
 }

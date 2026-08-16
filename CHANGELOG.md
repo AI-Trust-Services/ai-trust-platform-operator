@@ -2,41 +2,27 @@
 
 All notable changes to the AI Trust Platform MSP Operator.
 
-## v4 (0.4) — 2026-08-14 — Physical per-tenant isolation + tenant-aware IAM & logout
+## v4 (0.4) — 2026-08-16 — Rename "AI Trust Platform MT" → "AI Trust Platform" + clean-deploy fixes
 
-Release version **4** (operator image `v18`). Full details in
-[`CHANGES_2026-08-14.md`](CHANGES_2026-08-14.md).
+Full rename of the provider (display name AND technical identifiers), plus fixes so a fresh
+from-scratch deploy is clean. Done via destroy-then-redeploy (fresh provider, discard tenant data).
 
-### What was done
-- **Physical per-tenant isolation across all three stores** (new `operator/manifests/tenant-stores-job.tmpl`,
-  a one-shot Job the operator stamps per Subscription and gates `Ready` on):
-  - **Postgres:** schema-per-tenant (`tenant_<org>`) + per-tenant NOLOGIN role `t_<org>` (schema-only,
-    `WITH INHERIT FALSE`), shared-role direct grants revoked. RLS retained as a backup layer.
-    `ai_trust_app` is now `NOINHERIT` (PG16 `inherit_option` gotcha fixed) — hard wall verified live.
-  - **ClickHouse:** database-per-tenant (`tenant_<org>`), CH migrations run per tenant; consumer routes
-    each span batch to the tenant DB by `ai_trust.tenant_id`; reads fail-closed to legacy `otel`.
-  - **MinIO:** bucket-per-tenant (`tenant-<org>`); jwt mode fail-closed when no tenant.
-- **Operator (Go, v12→v18):** added the tenant-stores provisioning step + `jobSucceeded` gate +
-  `Provisioning` phase; one-subscription-per-org guard (`orgOwner()`); new cfg/env
-  (`dbMigrateImage`, `chMigrateImage`, `APP_DB_ROLE`, whitelist domain); `operator/helpers.go`
-  adds Keycloak admin-token + realm-existence checks and OpenFGA HTTP helpers.
-- **Tenant-aware IAM user management:** users-backend creates users in the tenant's own realm
-  (`current_realm()` from the `tenant_id` claim), via mesh Keycloak admin creds
-  (`mesh-keycloak-admin` secret, copied by `3b-shared-app.sh`).
-- **Per-tenant front-channel logout:** `keycloak-client-job.tmpl` sets post-logout redirect URIs and
-  robust client create/update; `oauth2-proxy-org.tmpl` adds `--backend-logout-url`, whitelist domain,
-  and `--skip-provider-button`. Fixes the sign-out / post-logout-403 issues.
-- **Create form:** dropped the cosmetic Plan field; relabeled Org (one subscription per org).
-- Added `CHANGES_2026-08-14.md` (full change log for a clean fresh deploy) and `git_comments.md`
-  (issue #16 verification report).
+### Renamed (old → new)
+- Display name `AI Trust Platform MT` → **`AI Trust Platform`**
+- Namespace `aitrust-mt-msp` → `aitrust-msp` · API group `sub.aitrustmt.msp` → `sub.aitrust.msp`
+- kcp ws `root:providers:ai-trust-mt` → `root:providers:ai-trust` · worker pool `ai-trust-mt` → `ai-trust`
+- Host `ai-trust-mt[-<org>].<suffix>` → `ai-trust[-<org>].<suffix>` · operator image → `aitrust-operator`
+- Chart dirs `aitrust-app` / `aitrust-pm-app` · CRD `subscriptions.sub.aitrust.msp`
+- Ops console moved to its own namespace `aitrust-ops`
 
-### Note on issue #16 acceptance criteria
-This release materially strengthens **AC3 (K8s-level isolation)** — tenant stores are now physically
-separated (schema/DB/bucket per tenant) and provisioned as per-tenant Kubernetes Job resources, rather
-than relying solely on application-layer RLS. See `git_comments.md` for the prior audit baseline.
-
-### Tags
-- `v0.4` points at this release. Prior: `v0.1`, `v0.2`, `v0.3`, `multitenancy`.
+### Fixed (a fresh deploy previously broke on these)
+- Added `TENANCY_JWKS_ISSUER_BASE` (overlay + users-backend env) — app fail-fasts without it in jwt mode.
+- Added `USERS_BACKEND_CLIENT_SECRET` env to the keycloak-provision Job.
+- Keycloak `postStart` sets master `sslRequired=NONE` (CGNAT pod IPs → 403 HTTPS-required on admin token).
+- `3b` OpenFGA store-id: store name `aitrust`, paginated exact-match, injected into operator + backends
+  (was shipping `__OPENFGA_STORE_ID__` → nav showed only Overview; seedAdminTuple skipped).
+- `patch_syncagent_hostalias` → merge-patch (idempotent). `reset.sh` sweeps stale ClusterRoles +
+  PublishedResources so a re-deploy after reset is clean.
 
 ## v3 (0.3) — 2026-08-14 — Multi-tenant MSP variant
 
@@ -50,12 +36,12 @@ content of `main`, imported from `Standard_AiTrust_MT_MSP`.
   per-tenant/per-org provisioning manifests under `operator/manifests/`
   (`tenant-provision-job.tmpl`, `keycloak-client-job.tmpl`, `oauth2-proxy-org.tmpl`,
   `openfga-provision-job.tmpl`).
-- **Helm charts:** `charts/aitrust-mt-app` (workload side: operator + syncagent + portal)
-  and `charts/aitrust-mt-pm-app` (kcp side: APIExport, ContentConfiguration,
+- **Helm charts:** `charts/aitrust-app` (workload side: operator + syncagent + portal)
+  and `charts/aitrust-pm-app` (kcp side: APIExport, ContentConfiguration,
   ProviderMetadata, bind RBAC); `subscription` CRD replaces the prior per-instance CRD.
 - **Config:** shared-app manifests (`config/shared-app/01-cm-pg-init-mt.yaml`,
   `02-secret-config-mt.tmpl`) for the shared multi-tenant deployment;
-  `config.env` targets `aitrust-mt-operator` / image tag `aitrust-mt`.
+  `config.env` targets `aitrust-operator` / image tag `aitrust`.
 - **Scripts:** MT deploy pipeline — `2b-build-app-images.sh`, `3b-shared-app.sh`,
   `6-create-subscription.sh` (replaces `6-create-instance.sh`).
 - **Docs:** `docs/mesh-idp-integration-design.md`, `msp_aitrust_mt_howto.md`.

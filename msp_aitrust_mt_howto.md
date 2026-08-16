@@ -1,4 +1,4 @@
-# AI Trust Platform MT — how-to (login → deploy → Enable → subscribe → tenant login)
+# AI Trust Platform — how-to (login → deploy → Enable → subscribe → tenant login)
 
 A short operator how-to for the **multi-tenant** MSP provider. It publishes ONE shared AI Trust app and,
 per customer **Subscription**, provisions a **tenant** (a per-tenant Keycloak realm + `tenant_id` data
@@ -21,24 +21,24 @@ MSYS_NO_PATHCONV=1 wsl.exe -d Ubuntu -- bash \
 3-provider → 3b-shared-app → 4-consumer-workspace → 5-bind-apis → 6-create-subscription → 7-verify-portal`.
 
 What each phase gives you:
-- **1** adds the `ai-trust-mt` worker pool (`m_c16_m128_v2`, ~10 min to a Ready node).
-- **2 / 2b** build+push the operator (`aitrust-mt-operator:v1`) and the MT app images (tag `aitrust-mt`,
+- **1** adds the `ai-trust` worker pool (`m_c16_m128_v2`, ~10 min to a Ready node).
+- **2 / 2b** build+push the operator (`aitrust-operator:v1`) and the MT app images (tag `aitrust`,
   including `aitrust-keycloak-provision` — the operator's tenant-provision Job image).
-- **3** registers the provider (APIExport `sub.aitrustmt.msp` publishing `subscriptions`).
+- **3** registers the provider (APIExport `sub.aitrust.msp` publishing `subscriptions`).
 - **3b** deploys the ONE shared app at `SHARED_APP_HOST` (`TENANCY_MODE=jwt`, Postgres RLS app role).
 - **4/5** create the demo org + account and bind the API (the scripted "Enable").
 - **6** creates a demo `Subscription`; **7** waits for it to be Ready and prints the tenant URL + realm.
 
 ## 2. Enable (in the portal, the real customer path)
-Open the portal root, go to your **account → Namespaces → default**, expand the **"AI Trust Platform MT"**
-tile category, and click **Enable**. Under the hood this creates the APIBinding to `sub.aitrustmt.msp`
+Open the portal root, go to your **account → Namespaces → default**, expand the **"AI Trust Platform"**
+tile category, and click **Enable**. Under the hood this creates the APIBinding to `sub.aitrust.msp`
 (step 5 does the same non-interactively).
 
 ## 3. Create a Subscription
 In the same tile, click **Create** and fill the form (Name, Display Name, Plan, Admin Email). This writes a
 `Subscription` CR:
 ```yaml
-apiVersion: sub.aitrustmt.msp/v1alpha1
+apiVersion: sub.aitrust.msp/v1alpha1
 kind: Subscription
 metadata: { name: my-subscription }
 spec:
@@ -64,7 +64,7 @@ Two different subscriptions see completely separate data on the same deployment.
 ## 5. Teardown
 ```bash
 bash scripts/reset.sh          # delete subscriptions + shared app + provider (mesh untouched)
-bash scripts/reset.sh --pool   # also drop the ai-trust-mt worker pool
+bash scripts/reset.sh --pool   # also drop the ai-trust worker pool
 ```
 Deleting a `Subscription` soft-disables its tenant realm; the append-only inference log is never deleted.
 

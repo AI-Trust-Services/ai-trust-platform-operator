@@ -33,6 +33,19 @@ for r in $(sk -n "$GATEWAY_NS" get httproute -o name 2>/dev/null | grep -E 'aitr
   sk -n "$GATEWAY_NS" delete "$r" >/dev/null 2>&1 || true
 done
 
+# Sweep CLUSTER-SCOPED leftovers that block a clean re-deploy (helm can't adopt objects owned by a
+# prior release; a stale PublishedResource with the same agent-name poisons the new syncagent).
+# These are cluster/kcp-scoped so `delete ns` above does NOT remove them.
+log "Sweeping cluster-scoped leftovers (ClusterRoles, PublishedResources)…"
+for cr in aitrust-operator aitrust-syncagent; do
+  sk delete clusterrole "$cr" --ignore-not-found >/dev/null 2>&1 || true
+  sk delete clusterrolebinding "$cr" --ignore-not-found >/dev/null 2>&1 || true
+done
+# PublishedResources selected by our syncagent's agent-name (leftover ones stall sync on missing CRDs)
+for pr in $(sk get publishedresources.syncagent.kcp.io -o name 2>/dev/null | grep -E 'aitrust' || true); do
+  sk delete "$pr" --ignore-not-found >/dev/null 2>&1 || true
+done
+
 if [ "${1:-}" = "--pool" ]; then
   log "Dropping worker pool $WORKER_POOL…"
   IDX="$(garden get shoot "$SHOOT_NAME" -n "$PROJECT" -o json 2>/dev/null \
