@@ -2,6 +2,27 @@
 
 All notable changes to the AI Trust Platform MSP Operator.
 
+## v5 (0.5) — 2026-08-17 — Fresh-mesh robustness fixes (from the ai-trust-prod build)
+
+Latent bugs that only surface on a **truly-fresh** Platform Mesh (they worked on ai-trust-1 because prior
+state masked them). Found + fixed while standing up a brand-new full stack on shoot `ai-trust-prod`;
+verified E2E there (tenant Ready, all per-tenant stores + realm).
+
+- **api-syncagent PublishedResource CRD pre-install** (`scripts/3-provider.sh`) — install the
+  `publishedresources.syncagent.kcp.io` CRD (bundled `crds/`, or upstream `kcp-dev/api-syncagent` v0.5.1)
+  BEFORE the `aitrust-app` helm chart. The chart ships a `PublishedResource` CR; Helm validates it at apply
+  time and fails the whole atomic release when the CRD is absent (`no matches for kind PublishedResource`).
+  Also: the masked `>/dev/null || warn` is now `|| die` with real error output.
+- **Subscription `spec.org`** (`scripts/6-create-subscription.sh`) — set `spec.org`; operator requires it
+  for per-org auth, else the Subscription stays `Degraded: spec.org is empty`.
+- **Strong non-default secrets** (`scripts/3b-shared-app.sh` + `config/shared-app/02-secret-config-mt.tmpl`) —
+  generate strong `POSTGRES/APP_DB/RABBITMQ/MINIO_ROOT/KEYCLOAK_ADMIN/APP_ADMIN` passwords (persisted
+  `.state/mt-secrets.env`). The `libs/tenancy` security preflight refuses to boot backends with known-default
+  creds when `TENANCY_MODE=jwt` (compliance-backend crashlooped on `MINIO_ROOT_PASSWORD=minioadmin`).
+
+(Full-cluster context, incl. the mesh `:443` ordering fix, ops-console fresh-cluster bootstrap, and the real
+Let's Encrypt served cert, lives in the ai-trust-prod deploy record — those are in the mesh + ops bundles.)
+
 ## v4 (0.4) — 2026-08-16 — Rename "AI Trust Platform MT" → "AI Trust Platform" + clean-deploy fixes
 
 Full rename of the provider (display name AND technical identifiers), plus fixes so a fresh
