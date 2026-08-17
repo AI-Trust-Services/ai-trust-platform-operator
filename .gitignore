@@ -25,3 +25,4 @@ __pycache__/
 
 # NOTE: config.env is KEPT (it's the deploy config: OPERATOR_TAG, domain, image names — no secrets).
 # If you ever put a real secret in config.env, move it out; do not un-ignore secrets.
+.claude/

@@ -15,13 +15,45 @@ OVER="$BUNDLE/config/shared-app"
 OUT="$(mktemp -d)"; trap 'rm -rf "$OUT"' EXIT
 COOKIE="$(head -c16 /dev/urandom | xxd -p)"
 
+# Strong non-default credentials. The MT app's tenancy security preflight (libs/tenancy
+# security_preflight.py) REFUSES to boot any backend when TENANCY_MODE=jwt if a known-default secret
+# (POSTGRES_PASSWORD=postgres, MINIO_ROOT_PASSWORD=minioadmin, APP_ADMIN_PASSWORD=password,
+# KEYCLOAK_ADMIN_PASSWORD=admin, RABBITMQ_PASSWORD=guest) is still present. Generate strong values once
+# and persist them in .state so re-runs reuse the SAME creds (idempotent; stores keep their init creds).
+SECRETS_ENV="$STATE/mt-secrets.env"
+gen_secret(){ head -c18 /dev/urandom | base64 | tr -dc 'a-zA-Z0-9' | head -c24; }
+if [ -f "$SECRETS_ENV" ]; then
+  set -a; source "$SECRETS_ENV"; set +a
+  log "Reusing persisted MT credentials ($SECRETS_ENV)"
+else
+  MT_POSTGRES_PASSWORD="$(gen_secret)"; MT_APP_DB_PASSWORD="$(gen_secret)"
+  MT_RABBITMQ_PASSWORD="$(gen_secret)"; MT_MINIO_ROOT_PASSWORD="$(gen_secret)"
+  MT_KEYCLOAK_ADMIN_PASSWORD="$(gen_secret)"; MT_APP_ADMIN_PASSWORD="$(gen_secret)"
+  cat > "$SECRETS_ENV" <<EOF
+MT_POSTGRES_PASSWORD=$MT_POSTGRES_PASSWORD
+MT_APP_DB_PASSWORD=$MT_APP_DB_PASSWORD
+MT_RABBITMQ_PASSWORD=$MT_RABBITMQ_PASSWORD
+MT_MINIO_ROOT_PASSWORD=$MT_MINIO_ROOT_PASSWORD
+MT_KEYCLOAK_ADMIN_PASSWORD=$MT_KEYCLOAK_ADMIN_PASSWORD
+MT_APP_ADMIN_PASSWORD=$MT_APP_ADMIN_PASSWORD
+EOF
+  chmod 600 "$SECRETS_ENV"
+  log "Generated strong MT credentials → $SECRETS_ENV (gitignored)"
+fi
+
 log "Rendering shared MT app into ns '$NS' at $URL …"
-render() {  # swap the app ns + URL placeholders + image registry/tag, like the standalone bundle
+render() {  # swap the app ns + URL placeholders + image registry/tag + strong creds
   sed -e "s|ai-trust-app|$NS|g" \
       -e "s|__APP_NS__|$NS|g" \
       -e "s|__APP_URL__|$URL|g" \
       -e "s|__APP_DOMAIN__|$SHARED_APP_HOST|g" \
       -e "s|__COOKIE_SECRET__|$COOKIE|g" \
+      -e "s|__POSTGRES_PASSWORD__|$MT_POSTGRES_PASSWORD|g" \
+      -e "s|__APP_DB_PASSWORD__|$MT_APP_DB_PASSWORD|g" \
+      -e "s|__RABBITMQ_PASSWORD__|$MT_RABBITMQ_PASSWORD|g" \
+      -e "s|__MINIO_ROOT_PASSWORD__|$MT_MINIO_ROOT_PASSWORD|g" \
+      -e "s|__KEYCLOAK_ADMIN_PASSWORD__|$MT_KEYCLOAK_ADMIN_PASSWORD|g" \
+      -e "s|__APP_ADMIN_PASSWORD__|$MT_APP_ADMIN_PASSWORD|g" \
       -e "s|image: aitrust/\([a-z0-9-]*\):kind|image: $REGISTRY/aitrust-\1:$TAG|g" "$1"
 }
 

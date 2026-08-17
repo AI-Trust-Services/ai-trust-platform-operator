@@ -71,6 +71,22 @@ for ln in lines:
     out.append(ln)
 open(p, 'w').write('\n'.join(out) + '\n')
 PY
+# Pre-install the api-syncagent PublishedResource CRD BEFORE the aitrust-app chart. The chart ships a
+# PublishedResource CR (publish-aitrust-subscriptions); on a FRESH mesh the syncagent.kcp.io CRD does
+# not exist yet (the syncagent binary would install it on startup, but Helm validates the CR at apply
+# time and fails the whole atomic release: "no matches for kind PublishedResource"). Bundled at
+# ../crds; fall back to the upstream pinned tag if absent. Idempotent.
+CRD_LOCAL="$HERE/../crds/publishedresources.syncagent.kcp.io.yaml"
+if sk get crd publishedresources.syncagent.kcp.io >/dev/null 2>&1; then
+  ok "syncagent PublishedResource CRD already present"
+elif [ -f "$CRD_LOCAL" ]; then
+  sk apply -f "$CRD_LOCAL" >/dev/null && ok "installed bundled syncagent PublishedResource CRD"
+else
+  SA_REF="v0.5.1"
+  curl -fsSL "https://raw.githubusercontent.com/kcp-dev/api-syncagent/${SA_REF}/deploy/crd/kcp.io/syncagent.kcp.io_publishedresources.yaml" \
+    | sk apply -f - >/dev/null && ok "installed syncagent CRD from upstream ${SA_REF}" \
+    || die "could not install the syncagent PublishedResource CRD (bundle ../crds missing + upstream fetch failed)"
+fi
 helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_APP_CHART" \
   --namespace "$PROVIDER_NS" --create-namespace \
   --set operator.image.repository="$OPERATOR_IMAGE" \
@@ -81,7 +97,7 @@ helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_
   --set operator.mspWorkerLabel="$MSP_WORKER_LABEL" \
   --set kcpKubeconfig.inClusterServerUrl="$KCP_INCLUSTER_URL" \
   --set-file kcpKubeconfig.adminContent="$KC_WS" \
-  >/dev/null 2>&1 || warn "aitrust-app helm returned non-zero — check: helm --kubeconfig \$SHOOT get -n $PROVIDER_NS"
+  || die "aitrust-app helm install FAILED (see error above) — inspect: helm --kubeconfig \$SHOOT_KUBECONFIG get manifest -n $PROVIDER_NS aitrust-app"
 ok "workload chart installed (MT operator + syncagent + portal nginx in $PROVIDER_NS)"
 
 # 4. syncagent hostAlias + bind authenticated.

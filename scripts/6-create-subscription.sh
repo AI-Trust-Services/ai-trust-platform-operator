@@ -16,6 +16,7 @@ apiVersion: sub.aitrust.msp/v1alpha1
 kind: Subscription
 metadata: { name: ${INSTANCE_NAME} }
 spec:
+  org: ${ORG_NAME}
   displayName: "AI Trust — ${ACCOUNT_NAME}"
   plan: ${INSTANCE_PLAN}
   adminEmail: ${DEMO_USER}
