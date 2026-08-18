@@ -6,7 +6,8 @@
 #                                (clickhouse-migrate image, TARGET_CH_DB). Stage 2.
 #   initContainer minio-bucket : create the per-tenant MinIO bucket tenant-<org> (mc image). Stage 3.
 #   main container provision   : Postgres — alembic upgrade head TARGET_SCHEMA=tenant_<org> (full table
-#                                set + RLS), create per-tenant role t_<org> (schema-only, WITH INHERIT
+#                                set; RLS is dropped by migration 0012 — isolation is schema + per-tenant
+#                                role only), create per-tenant role t_<org> (schema-only, WITH INHERIT
 #                                FALSE), revoke shared-role direct grants. Stage 1.
 # initContainers run sequentially to completion before the main container, so all three stores are
 # provisioned (or the Job fails) before the operator marks the Subscription Ready.
