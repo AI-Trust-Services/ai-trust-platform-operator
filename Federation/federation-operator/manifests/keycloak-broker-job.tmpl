@@ -1,0 +1,107 @@
+# keycloak-broker-job.tmpl — Stage 4 (federation SSO, Option A). One-shot Job the FEDERATION controller
+# stamps per federated Subscription, run against ai-trust-1's mesh Keycloak. It:
+#   1. creates the tenant realm `fed-<org>` on a1 if missing (so the controller's realm gate then passes);
+#   2. registers an OIDC Identity Provider alias `prod` in that realm that BROKERS ai-trust-PROD's
+#      Keycloak realm `<baseorg>` — a prod user logging into the a1 tenant is redirected to prod's
+#      Keycloak (first-broker-login), so they SSO with their prod identity;
+#   3. adds a hardcoded `tenant_id` = `fed-<org>` attribute/claim on the IdP so brokered logins carry the
+#      tenant. Idempotent (create-or-update). Talks to a1's mesh Keycloak Admin REST API with curl.
+#
+# Placeholders: __JOB_NAME__ __NS__ __ORG__ __BASEORG__ __POOL_LABEL__ __KC_INTERNAL__
+#   __PROD_KC_PUBLIC__  (prod's public Keycloak base, incl /keycloak — the brokered issuer host)
+#   __PROD_CLIENT_ID__ __SECRET_NAME__ __SECRET_KEY__  (OIDC client the a1 IdP uses at prod)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: __NS__
+  labels: { app.kubernetes.io/managed-by: aitrust-federation, org: "__ORG__" }
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 900
+  template:
+    metadata:
+      labels: { app: kc-broker-provision, org: "__ORG__" }
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector: { workload: __POOL_LABEL__ }
+      tolerations: [{ key: workload, value: __POOL_LABEL__, effect: NoSchedule }]
+      containers:
+        - name: broker
+          image: curlimages/curl:8.9.1
+          env:
+            - { name: KC, value: "__KC_INTERNAL__" }               # a1 mesh Keycloak internal base incl /keycloak
+            - { name: ORG, value: "__ORG__" }                      # fed-<baseorg>  (the a1 tenant realm)
+            - { name: BASEORG, value: "__BASEORG__" }              # <baseorg>      (prod's realm the IdP brokers)
+            - { name: PROD_KC, value: "__PROD_KC_PUBLIC__" }       # prod public Keycloak base incl /keycloak
+            - { name: IDP_CLIENT_ID, value: "__PROD_CLIENT_ID__" }
+            - { name: IDP_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: __SECRET_NAME__, key: __SECRET_KEY__ } } }
+            - { name: KC_ADMIN_USER, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: username } } }
+            - { name: KC_ADMIN_PASS, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: password } } }
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              echo "broker: ensuring realm $ORG on $KC (brokers prod realm $BASEORG)"
+              TOK=$(curl -s --fail "$KC/realms/master/protocol/openid-connect/token" \
+                -d grant_type=password -d client_id=admin-cli \
+                -d "username=$KC_ADMIN_USER" -d "password=$KC_ADMIN_PASS" | \
+                sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+              [ -n "$TOK" ] || { echo "admin token failed"; exit 1; }
+              AUTH="Authorization: Bearer $TOK"
+
+              # 1. realm fed-<org> — create if missing (enabled). Idempotent.
+              RC=$(curl -s -o /dev/null -w '%{http_code}' -H "$AUTH" "$KC/admin/realms/$ORG")
+              if [ "$RC" = "404" ]; then
+                curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms" -d "{\"realm\":\"$ORG\",\"enabled\":true,\"loginWithEmailAllowed\":true,\"registrationAllowed\":false}"
+                echo "created realm $ORG"
+              else
+                echo "realm $ORG exists (http $RC)"
+              fi
+
+              # 2. OIDC IdP alias 'prod' brokering prod's realm $BASEORG. The endpoints are prod's public
+              #    Keycloak for realm $BASEORG. Create or update (PUT).
+              ISS="$PROD_KC/realms/$BASEORG"
+              IDPBODY="{
+                    \"alias\":\"prod\",\"displayName\":\"Sign in with prod\",\"providerId\":\"oidc\",
+                    \"enabled\":true,\"trustEmail\":true,\"storeToken\":false,\"linkOnly\":false,
+                    \"firstBrokerLoginFlowAlias\":\"first broker login\",
+                    \"config\":{
+                      \"clientId\":\"$IDP_CLIENT_ID\",\"clientSecret\":\"$IDP_CLIENT_SECRET\",
+                      \"clientAuthMethod\":\"client_secret_post\",
+                      \"issuer\":\"$ISS\",
+                      \"authorizationUrl\":\"$ISS/protocol/openid-connect/auth\",
+                      \"tokenUrl\":\"$ISS/protocol/openid-connect/token\",
+                      \"userInfoUrl\":\"$ISS/protocol/openid-connect/userinfo\",
+                      \"jwksUrl\":\"$ISS/protocol/openid-connect/certs\",\"useJwksUrl\":\"true\",
+                      \"defaultScope\":\"openid email profile\",\"syncMode\":\"FORCE\"
+                    }
+                  }"
+              EX=$(curl -s -o /dev/null -w '%{http_code}' -H "$AUTH" "$KC/admin/realms/$ORG/identity-provider/instances/prod")
+              if [ "$EX" = "404" ]; then
+                curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$ORG/identity-provider/instances" -d "$IDPBODY"
+                echo "created IdP 'prod' in $ORG → $ISS"
+              else
+                curl -s --fail -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$ORG/identity-provider/instances/prod" -d "$IDPBODY"
+                echo "updated IdP 'prod' in $ORG → $ISS"
+              fi
+
+              # 3. hardcoded tenant_id=<org> attribute mapper on the IdP so brokered users carry the tenant.
+              MBODY="{
+                    \"name\":\"tenant_id\",\"identityProviderAlias\":\"prod\",
+                    \"identityProviderMapper\":\"hardcoded-attribute-idp-mapper\",
+                    \"config\":{\"attribute\":\"tenant_id\",\"attribute.value\":\"$ORG\",\"syncMode\":\"INHERIT\"}
+                  }"
+              MID=$(curl -s -H "$AUTH" "$KC/admin/realms/$ORG/identity-provider/instances/prod/mappers" | \
+                grep -oE '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"//')
+              if [ -z "$MID" ]; then
+                curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$ORG/identity-provider/instances/prod/mappers" -d "$MBODY" || true
+                echo "added tenant_id mapper on IdP prod in $ORG"
+              else
+                echo "tenant_id mapper already present (id=$MID)"
+              fi
+              echo "done: realm $ORG brokers prod:$BASEORG"

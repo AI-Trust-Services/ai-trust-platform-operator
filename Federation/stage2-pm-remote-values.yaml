@@ -1,0 +1,17 @@
+# aitrust-pm-app values for the FEDERATED provider (registered on PROD's kcp).
+# Same chart as the prod-local provider, different export/name/title + content host.
+exportName: sub.aitrust.remote
+
+content:
+  publicScheme: http
+  publicHost: aitrust-remote-portal.aitrust-remote.svc.cluster.local
+  path: /pm-content.json
+
+provider:
+  displayName: AI Trust Platform (on ai-trust-1)
+  description: >-
+    The AI Trust Platform running on the ai-trust-1 cluster, offered here via cross-cluster
+    federation. Enabling a subscription provisions an isolated tenant workspace ON ai-trust-1
+    (its own login realm + physical schema/DB/bucket isolation) and returns a URL on the
+    ai-trust-1 domain. Your prod identity is brokered for single sign-on. This tile is
+    federated — the workload lives on ai-trust-1, not on this cluster.
