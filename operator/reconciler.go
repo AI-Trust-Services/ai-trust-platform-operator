@@ -14,7 +14,7 @@ import (
 
 type reconciler struct {
 	client.Client               // LOCAL: prod kcp — Subscription watch, status, finalizer, dup guard.
-	remote        client.Client // REMOTE: ai-trust-1 — all provisioning applies/reads + teardown.
+	remote        client.Client // REMOTE: payload cluster — all provisioning applies/reads + teardown.
 	cfg           config
 }
 
@@ -41,7 +41,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	// turns an internal space into '-', which would corrupt the realm name). No cluster-id fallback: an
 	// empty org can only Degrade.
 	//
-	// FEDERATION: every federated tenant is namespaced with the `fed-` prefix on ai-trust-1 so it can
+	// FEDERATION: every federated tenant is namespaced with the `fed-` prefix on the payload cluster so it can
 	// never collide with a1's native tenants (fridaytest/martin/…) or a same-named prod-local tenant.
 	// This one substitution flows through EVERYTHING derived from org: the a1 Keycloak realm `fed-<org>`
 	// (Stage 4 brokers prod's real `<org>` realm INTO it for SSO), the host ai-trust-fed-<org>.<a1-suffix>,

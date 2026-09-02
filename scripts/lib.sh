@@ -1,6 +1,5 @@
 #!/bin/bash
-# lib.sh — shared helpers for the AI Trust Platform MSP provider deploy (targets the payload cluster,
-# currently shoot ai-trust-1: the cluster that runs the app + all federated tenants).
+# lib.sh — shared helpers for the AI Trust Platform MSP provider deploy (targets the payload cluster).
 # Reuses the Standard_MSP_Demo mesh helpers (kc, ws_kubeconfig, patch_syncagent_hostalias,
 # bind_authenticated, mint, kcp_portforward) + a render() for the ingress templates.
 # All identifiers come from prerequisites/config.env (MT model: ONE shared app + per-tenant Subscriptions).
@@ -32,14 +31,13 @@ load_config(){
   : "${PROVIDER_NS:=aitrust-msp}"; : "${CONTENT_SCHEME:=http}"
   : "${AITRUST_CONTENT_HOST:=aitrust-portal.aitrust-msp.svc.cluster.local}"
   : "${AITRUST_APP_CHART:=charts/aitrust-app}"; : "${AITRUST_PM_CHART:=charts/aitrust-pm-app}"
-  : "${OPERATOR_IMAGE:=mirceacraciun795/aitrust-operator}"; : "${OPERATOR_TAG:=v1}"
-  : "${REGISTRY:=mirceacraciun795}"; : "${TAG:=aitrust}"
-  : "${SHARED_APP_HOST:=ai-trust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu}"
+  : "${OPERATOR_IMAGE:=ghcr.io/ai-trust-services/aitrust-operator}"; : "${OPERATOR_TAG:=v1}"
+  : "${REGISTRY:=ghcr.io/ai-trust-services}"; : "${TAG:=aitrust}"
+  : "${SHARED_APP_HOST:=}"
   : "${ORG_NAME:=aitrust}"; : "${ACCOUNT_NAME:=tenant}"; : "${INSTANCE_NAME:=my-subscription}"; : "${INSTANCE_PLAN:=standard}"
-  # Payload cluster shoot. Default config targets ai-trust-1, but any payload shoot is allowed —
-  # warn (don't die) if it differs so the bundle can deploy onto a different payload cluster.
-  : "${SHOOT_NAME:=ai-trust-1}"
-  [ "$SHOOT_NAME" = "ai-trust-1" ] || warn "SHOOT_NAME is '$SHOOT_NAME' (not the default payload cluster ai-trust-1) — proceeding."
+  # Payload cluster shoot — must be set in config.env.
+  : "${SHOOT_NAME:=}"
+  [ -z "$SHOOT_NAME" ] && die "SHOOT_NAME is not set — configure it in prerequisites/config.env"
   export SHOOT_NAME PROJECT GARDENER_API MESH_NS GATEWAY_NS GATEWAY_NAME KCP_INCLUSTER_URL
   export WORKER_TYPE WORKER_POOL WORKER_ZONE WORKER_MIN WORKER_MAX WORKER_IMAGE_VERSION MSP_WORKER_LABEL
   export PROVIDER_WS EXPORT_NAME PROVIDER_NS AITRUST_APP_CHART AITRUST_PM_CHART

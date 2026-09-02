@@ -37,7 +37,7 @@ type config struct {
 	dbMigrateImage string // image (alembic + ai_trust_persistence) used to provision per-tenant schemas
 	chMigrateImage string // image (clickhouse-migrate) used to provision per-tenant ClickHouse databases
 	appRole        string // the non-superuser runtime Postgres role granted on each tenant schema
-	remoteKubecfg  string // path to the mounted ai-trust-1 SA kubeconfig (provisioning target)
+	remoteKubecfg  string // path to the mounted payload cluster SA kubeconfig (provisioning target)
 	prodKcPublic   string // PROD public Keycloak base (incl /keycloak) — the realm the a1 IdP brokers
 	idpClientID    string // OIDC client id the a1 'prod' IdP uses at prod's Keycloak
 	prodKcInternal string // PROD in-cluster mesh Keycloak base (reachable from the controller on prod)
@@ -56,10 +56,10 @@ func cfg() config {
 	return config{
 		federated:         federated,
 		providerNS:        env("PROVIDER_NS", "aitrust-msp"),
-		domainSuffix:      env("INSTANCE_DOMAIN_SUFFIX", "ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu"),
+		domainSuffix:      env("INSTANCE_DOMAIN_SUFFIX", ""),
 		poolLabel:         env("MSP_WORKER_LABEL", "ai-trust"),
 		kcInternal:        env("KC_INTERNAL_URL", "http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak"),
-		kcPublic:          env("KC_PUBLIC_URL", "https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak"),
+		kcPublic:          env("KC_PUBLIC_URL", ""),
 		gatewayNS:         env("GATEWAY_NS", "platform-mesh-system"),
 		gatewayName:       env("GATEWAY_NAME", "k8sapi-gateway"),
 		gatewaySection:    env("GATEWAY_SECTION", "terminate-wildstar"),
@@ -67,11 +67,11 @@ func cfg() config {
 		storeID:           mustEnv("OPENFGA_STORE_ID"),
 		meshAdminNS:       env("MESH_KC_ADMIN_NS", "platform-mesh-system"),
 		meshAdminName:     env("MESH_KC_ADMIN_SECRET", "keycloak-admin"),
-		dbMigrateImage:    env("DBMIGRATE_IMAGE", "mirceacraciun795/aitrust-db-migrate:aitrust"),
-		chMigrateImage:    env("CHMIGRATE_IMAGE", "mirceacraciun795/aitrust-clickhouse-migrate:aitrust"),
+		dbMigrateImage:    env("DBMIGRATE_IMAGE", "ghcr.io/ai-trust-services/aitrust-db-migrate:latest"),
+		chMigrateImage:    env("CHMIGRATE_IMAGE", "ghcr.io/ai-trust-services/aitrust-clickhouse-migrate:latest"),
 		appRole:           env("APP_DB_ROLE", "ai_trust_app"),
 		remoteKubecfg:     remoteKubecfg,
-		prodKcPublic:      env("PROD_KC_PUBLIC_URL", "https://ai-trust-prod.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak"),
+		prodKcPublic:      env("PROD_KC_PUBLIC_URL", ""),
 		idpClientID:       env("IDP_CLIENT_ID", "aitrust-fed-broker"),
 		prodKcInternal:    env("PROD_KC_INTERNAL_URL", "http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak"),
 		localNS:           env("LOCAL_NS", "aitrust-remote"),

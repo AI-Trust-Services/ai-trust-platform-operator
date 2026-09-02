@@ -60,7 +60,7 @@ func main() {
 		gvk = schema.GroupVersionKind{Group: "sub.aitrust.remote", Version: "v1alpha1", Kind: "Subscription"}
 		finalizer = "subscription.sub.aitrust.remote/finalizer"
 		fedPrefix = "fed-"
-		remoteCluster = env("PAYLOAD_CLUSTER_NAME", "ai-trust-1")
+		remoteCluster = env("PAYLOAD_CLUSTER_NAME", "")
 	}
 
 	mgr, err := manager.New(ctrl.GetConfigOrDie(), manager.Options{})

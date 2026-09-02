@@ -34,7 +34,7 @@ func (r *reconciler) applyDoc(ctx context.Context, doc string) error {
 		if obj == nil {
 			continue
 		}
-		// REMOTE: provisioning objects are applied on ai-trust-1.
+		// REMOTE: provisioning objects are applied on the payload cluster.
 		if err := r.remote.Patch(ctx, obj, client.Apply, client.ForceOwnership, client.FieldOwner("aitrust-federation")); err != nil {
 			return fmt.Errorf("apply %s/%s: %w", obj.GetKind(), obj.GetName(), err)
 		}
@@ -93,7 +93,7 @@ func (r *reconciler) deleteOrgResources(ctx context.Context, org string) {
 		o.SetGroupVersionKind(gvk)
 		o.SetNamespace(ns)
 		o.SetName(name)
-		_ = r.remote.Delete(ctx, o) // REMOTE: teardown happens on ai-trust-1.
+		_ = r.remote.Delete(ctx, o) // REMOTE: teardown happens on the payload cluster.
 	}
 	del(schema.GroupVersionKind{Group: "apps", Version: "v1", Kind: "Deployment"}, r.cfg.providerNS, "oauth2-proxy-"+org)
 	del(schema.GroupVersionKind{Version: "v1", Kind: "Service"}, r.cfg.providerNS, "oauth2-proxy-"+org)

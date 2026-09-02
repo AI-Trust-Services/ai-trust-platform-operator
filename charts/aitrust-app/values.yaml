@@ -6,28 +6,28 @@ exportName: sub.aitrust.msp     # APIExport/EndpointSlice the syncagent binds to
 # per Subscription.
 operator:
   image:
-    repository: mirceacraciun795/aitrust-operator
+    repository: ghcr.io/ai-trust-services/aitrust-operator
     tag: v21                     # merged mode-driven operator (FEDERATION_MODE defaults to local here)
     pullPolicy: Always
   # env driving the subscription operator (the shared-app coordinates + the tenant-provision image)
-  sharedAppHost: ai-trust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
+  sharedAppHost: ""
   providerNamespace: aitrust-msp
-  provisionImage: mirceacraciun795/aitrust-keycloak-provision:aitrust
-  registry: mirceacraciun795
+  provisionImage: ghcr.io/ai-trust-services/aitrust-keycloak-provision:aitrust
+  registry: ghcr.io/ai-trust-services
   tag: aitrust                 # MT app image tag
   gatewayNamespace: platform-mesh-system
   gatewayName: k8sapi-gateway
   mspWorkerLabel: ai-trust     # node pool label the shared app + operator pin to
   # v5 multi-realm auth
-  domainSuffix: ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu  # per-org host = ai-trust-<org>.<suffix>
-  gatewaySection: terminate-wildstar   # gateway listener that terminates *.<suffix>
+  domainSuffix: ""
+  gatewaySection: terminate-wildstar
   kcInternalUrl: http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak
-  kcPublicUrl: https://ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu/keycloak
+  kcPublicUrl: ""
   openfgaUrl: http://openfga.platform-mesh-system.svc.cluster.local:8080
   openfgaStoreId: ""              # the ONE shared app store id (set by 3b-shared-app.sh / deploy)
   meshKcAdminSecret: keycloak-admin  # mesh Keycloak bootstrap-admin secret (in gatewayNamespace) the operator copies
-  dbMigrateImage: mirceacraciun795/aitrust-db-migrate:aitrust  # per-tenant schema provisioning Job image
-  chMigrateImage: mirceacraciun795/aitrust-clickhouse-migrate:aitrust  # per-tenant CH database provisioning
+  dbMigrateImage: ghcr.io/ai-trust-services/aitrust-db-migrate:latest
+  chMigrateImage: ghcr.io/ai-trust-services/aitrust-clickhouse-migrate:latest
   appDbRole: ai_trust_app         # non-superuser runtime Postgres role granted on each tenant schema
   federationMode: local           # FEDERATION_MODE: local (default) or federated (cross-cluster)
 

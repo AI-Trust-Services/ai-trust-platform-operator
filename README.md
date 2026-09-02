@@ -1,102 +1,124 @@
-# AI Trust Platform as an MSP Provider
+<p align="center">
+  <img alt="AI Trust Platform logo" src="https://ai-trust-services.github.io/logo.svg" width="120"/>
+</p>
 
-**Version:** 3 (tag `v0.3`) · **Status:** multi-tenant MSP variant is the content of `main`.
-See [`CHANGELOG.md`](CHANGELOG.md) for what changed; the version string lives in [`VERSION`](VERSION).
+<h1 align="center">AI Trust Platform Operator</h1>
 
-Publishes the **AI Trust Platform** app (multi-tenant Stage-A build from `../ai-trust-platform-main`) as a
-**Platform Mesh MSP provider** — the same pattern as the apeirora private-llm / chat-ui showroom providers.
-A customer sees a tile in the portal, clicks **Enable**, and creates a **Subscription** — and gets an
-**isolated tenant** inside **one shared platform**, not a private copy.
+<p align="center">
+  <strong>Multi-tenant Kubernetes operator for the AI Trust Platform.</strong><br/>
+  Provision isolated tenants on demand — one shared platform, zero per-tenant infrastructure copies.
+</p>
 
-- **Subscription model:** ONE shared app is deployed **once** (`3b-shared-app.sh`). Each Enable creates a
-  **`Subscription`** CR; the operator provisions a **tenant** — a per-tenant Keycloak realm whose tokens
-  carry `tenant_id` — inside that shared app. It does **NOT** stamp a ~23-service app copy per customer.
-- **Isolation:** `tenant_id` + Postgres **RLS** + per-tenant ClickHouse/MinIO scoping, all enforced inside
-  the shared app (Stage A). The auth boundary is the per-tenant realm; the data boundary is `tenant_id`.
-- **Fully isolated from the existing `../Standard_AiTrust_MSP` (full-copy) provider** — different API group
-  (`sub.aitrust.msp`), workspace (`root:providers:ai-trust`), namespace (`aitrust-msp`), worker pool
-  (`ai-trust`), and image tag (`aitrust`). The two providers never collide.
-- **Runs on the stock Platform Mesh already installed on the payload cluster (`ai-trust-1` by default)**
-  (`../Standard_Platform_Mesh`). Hard rail: this bundle only targets the payload cluster; never
-  creates/deletes a shoot.
+<p align="center">
+  <a href="https://api.reuse.software/info/github.com/AI-Trust-Services/ai-trust-platform-operator"><img alt="REUSE status" src="https://api.reuse.software/badge/github.com/AI-Trust-Services/ai-trust-platform-operator"/></a>
+  <img alt="License" src="https://img.shields.io/github/license/AI-Trust-Services/ai-trust-platform-operator?style=flat-square"/>
+  <img alt="Status" src="https://img.shields.io/badge/status-alpha-orange?style=flat-square"/>
+  <img alt="Go version" src="https://img.shields.io/badge/go-1.26-blue?style=flat-square"/>
+</p>
 
 ---
 
-## Federation (multi-cluster)
+## About this project
 
-This operator can run in **two topologies**, and `install.sh` asks which one you want up front:
+The **AI Trust Platform Operator** is a [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime) based Kubernetes operator that publishes the [AI Trust Platform](https://github.com/AI-Trust-Services/ai-trust-platform) as a **multi-tenant managed service** on top of [KCP](https://github.com/kcp-dev/kcp) and the [ApeiroRA Platform Mesh](https://documentation.apeirora.eu).
 
-- **Single-cluster (default):** the Marketplace/portal, the provider, and the app + tenants all live on
-  **one** cluster — the **payload cluster** (`ai-trust-1` by default). Everything in the sections below
-  describes this mode.
-- **Federated (multi-cluster):** the **Central Cluster** (`ai-trust-prod` by default) hosts the
-  Marketplace/portal and the federation controller; a customer's **Enable** on Central is federated out to
-  the **Payload Cluster** (`ai-trust-1` by default), which runs the app + all tenants. The Central Cluster
-  is the consumer; the Payload Cluster is the provider.
+A customer clicks **Enable** in the marketplace portal, which creates a `Subscription` custom resource. The operator provisions an **isolated tenant** — a dedicated Keycloak realm, Postgres schema, ClickHouse database, and MinIO bucket — inside **one shared platform instance**. No per-tenant infrastructure copy is created.
 
-In federated mode the wiring is not hardcoded to any one person's local paths — the Central and Payload
-clusters are supplied via env (`CENTRAL_KUBECONFIG`, `PAYLOAD_KUBECONFIG`, `CENTRAL_BUNDLE`, and the
-`PAYLOAD_*` / `CENTRAL_*` value knobs), each defaulting to today's `ai-trust-1` / `ai-trust-prod` values.
+The operator ships as a single image and supports two deployment topologies via `FEDERATION_MODE`:
 
-Federated mode is enabled via `bash install.sh --mode federated`. Requires `REMOTE_KUBECONFIG` — the
-operator crashes at startup with a clear message if it is missing in federated mode.
+- **`local`** (default) — single-cluster: the marketplace, provider, and app all run on one cluster.
+- **`federated`** — cross-cluster: a Central cluster hosts the marketplace and federation controller; tenants are provisioned on a separate Payload cluster.
+
+> ⚠️ This project is currently under active development and is **not intended for production use**. APIs and interfaces are subject to change without prior notice.
+
+---
+
+## Requirements and setup
+
+### Prerequisites
+
+- Kubernetes cluster with [ApeiroRA Platform Mesh](https://documentation.apeirora.eu) installed and Ready
+- [KCP](https://github.com/kcp-dev/kcp) provider workspace access
+- Tools: `kubectl`, `helm` 3, `docker`, `jq`, `python3`
+- Go 1.26+ (only if building the operator from source)
+
+### Install
+
+```bash
+# 1. Configure your cluster and registry coordinates
+cp prerequisites/config.env.example prerequisites/config.env
+# edit prerequisites/config.env
+
+# 2. Run the installer (single-cluster by default)
+bash install.sh
+
+# Federated (cross-cluster) mode:
+bash install.sh --mode federated
+```
+
+The installer runs the full deploy pipeline (`scripts/deploy.sh`, steps 0–7):
+
+| Step | Does |
+|------|------|
+| `0-check-prerequisites` | tools, cluster reachable, mesh Ready, charts lint, docker login |
+| `1-worker-pool` | dedicated node pool for the shared app + operator |
+| `2-build-operator-image` | build + push the operator image |
+| `2b-build-app-images` | build + push the AI Trust Platform app images |
+| `3-provider` | provider workspace + Helm charts + syncagent wiring |
+| `3b-shared-app` | deploy the ONE shared multi-tenant AI Trust app |
+| `4-consumer-workspace` | org + child account setup |
+| `5-bind-apis` | APIBinding to `sub.aitrust.msp` |
+| `6-create-subscription` | create a demo `Subscription` |
+| `7-verify-portal` | verify portal tile, subscription status, tenant URL |
+
+### Build from source
+
+```bash
+cd operator
+make build             # compile binary
+make test              # unit tests — no cluster required
+make test-integration  # envtest-based integration tests
+make test-e2e          # E2E against a live cluster (requires KUBECONFIG)
+make docker-build      # build container image
+```
+
+### Tear down
+
+```bash
+bash scripts/reset.sh         # remove subscriptions + shared app + provider (keep the mesh)
+bash scripts/reset.sh --pool  # also remove the node pool
+```
 
 ---
 
 ## How it works
 
-Two Helm charts (like every mesh provider) + the shared app + a subscription operator:
+Two Helm charts + the shared app + the subscription operator:
 
-| Chart / component | Installed where | Contains |
-|-------------------|-----------------|----------|
-| **`charts/aitrust-app`** (workload) | shoot ns `aitrust-msp` | the **MT operator** (watches `Subscription`, provisions a per-tenant realm), the **api-syncagent** (mirrors the CR between the consumer's kcp workspace and the shoot), and the **portal nginx** serving `/pm-content.json` |
-| **`charts/aitrust-pm-app`** (kcp) | workspace `root:providers:ai-trust` | **APIExport** `sub.aitrust.msp`, **ContentConfiguration**, **ProviderMetadata**, **apiexport-bind** RBAC |
-| **shared app** (`3b-shared-app.sh`) | shoot ns `aitrust-msp` | the ONE multi-tenant AI Trust stack (`TENANCY_MODE=jwt`, RLS app role), reached at `SHARED_APP_HOST`; all tenants share it |
+| Component | Installed where | Contains |
+|-----------|-----------------|----------|
+| **`charts/aitrust-app`** (workload) | cluster ns `aitrust-msp` | MT operator, api-syncagent, portal nginx |
+| **`charts/aitrust-pm-app`** (kcp) | workspace `root:providers:ai-trust` | APIExport `sub.aitrust.msp`, ContentConfiguration, ProviderMetadata, RBAC |
+| **shared app** (`3b-shared-app.sh`) | cluster ns `aitrust-msp` | ONE multi-tenant AI Trust stack (`TENANCY_MODE=jwt`) |
 
-The **MT operator** (`operator/`, Go, controller-runtime) embeds **only** `manifests/*.tmpl` (the
-tenant-provision Job template) via `embed.FS`. Per `Subscription` it derives the tenant id from the mesh
-account, stamps a one-shot Job that runs the app's Keycloak provisioner against the **shared** Keycloak to
-create a per-tenant realm (`t-<tenantId>`), and writes the tenant's login URL + realm + tenantId back to
-status. The finalizer soft-disables the tenant (the append-only inference log is never deleted).
-
-**Customer flow:** Account org → child Account → APIBinding (Enable) → create a `Subscription` →
-syncagent mirrors it to a per-consumer namespace on the shoot → operator provisions the tenant realm in the
-shared app → status + tenant URL flow back → open the tenant URL and log in via that tenant's own realm.
-
----
-
-## Does clicking **Create** make a new worker or a new app copy?
-
-**No to both.** There is exactly **one** app deployment. Create only adds a **tenant realm** to the shared
-Keycloak and flips the `Subscription` to Ready — no new namespace, no new stack, no new node. All tenants
-run on the shared app pinned to the single **`ai-trust`** pool (`m_c16_m128_v2`, 128 Gi). The Gardener
-cluster-autoscaler only adds a node if the shared app's own load exceeds one node (min 1, max 4).
+**Tenant provisioning flow:**
 
 ```
-Portal "Create"  (GraphQL mutation createSubscription)
+Portal "Enable"  →  Subscription CR created (kcp)
       │
       ▼
-1. CR created:  Subscription/<name>  in the customer's account workspace (kcp)
+api-syncagent mirrors CR onto the cluster
       │
       ▼
-2. api-syncagent mirrors the CR spec-down onto the shoot, into a per-consumer namespace
-   named after the consumer's kcp logical-cluster id (== the tenant id)
+Operator reconciles:
+  • derives tenantId from the consumer's kcp logical-cluster id
+  • runs one-shot tenant-provision Job → creates per-tenant Keycloak realm
+  • provisions Postgres schema + ClickHouse DB + MinIO bucket
+  • writes status.url / status.realm / status.tenantId
       │
       ▼
-3. MT operator (watching the CR) reconciles:
-     • tenantId = cr.Namespace (the consumer cluster id);  realm = t-<tenantId>
-     • stamps a one-shot tenant-provision Job (PROVISION_IMAGE = aitrust-keycloak-provision:aitrust)
-       that creates the per-tenant realm in the SHARED Keycloak (tokens carry tenant_id)
-     • writes status.url / status.realm / status.tenantId back (mirrored up to the portal)
-      │
-      ▼
-4. tenant logs into the shared app at its URL; the app enforces tenant_id via RLS + scoped ClickHouse/MinIO.
-      │
-      ▼
-5. finalizer on delete: soft-disables the tenant (drops the provisioning Job; DATA retained).
+Tenant logs in at their URL; app enforces isolation via realm + schema-per-tenant
 ```
-
----
 
 ## The CRD
 
@@ -105,91 +127,40 @@ apiVersion: sub.aitrust.msp/v1alpha1
 kind: Subscription
 metadata: { name: my-subscription }
 spec:
-  displayName: "AI Trust MT — tenant"
-  plan: standard          # standard | enterprise  (cosmetic tier label; no per-tenant infra)
+  displayName: "My Organisation"
+  plan: standard        # standard | enterprise
   adminEmail: you@example.com
-# status: { ready, url, tenantId, realm, phase, observedGeneration, conditions[] }
+# status: { ready, url, tenantId, realm, phase, conditions[] }
 ```
 
-No `hostname` / `sizeClass` — a subscription provisions no per-tenant infrastructure, so there is nothing
-to size, and the tenant URL is derived (`<tenantId>-<name>.<shared-suffix>`, routes to the shared host).
+## Federation (multi-cluster)
 
-## 3-step usage
-1. **Garden login** (once, Ubuntu terminal): `bash prerequisites/login.sh`
-2. **One-click deploy:**
-   `MSYS_NO_PATHCONV=1 wsl.exe -d Ubuntu -- bash '/mnt/c/claude/projects/eu-ai-trust-platform/Standard_AiTrust_MT_MSP/scripts/deploy.sh'`
-   (worker pool ~10 min + operator/app image build+push + charts + shared app + one subscription ~1-2 min)
-3. **See the tile / open the tenant** — step 7 prints the shared app host, the tenant URL + realm, and the
-   portal nav path (account → Namespaces → default → expand **"AI Trust Platform"**).
+In **federated** mode (`--mode federated`) a Central Cluster hosts the marketplace and a Payload Cluster runs the app and tenants. The operator on the Central cluster provisions tenants on the Payload cluster via `REMOTE_KUBECONFIG`.
 
-Reset (remove subscriptions + shared app + provider, keep the mesh): `bash scripts/reset.sh`
-(`--pool` also drops the `ai-trust` pool).
-
-## Steps (`deploy.sh` runs 0 → 1 → 2 → 2b → 3 → 3b → 4 → 5 → 6 → 7)
-| Step | Does |
-|------|------|
-| `0-check-prerequisites` | tools, garden reachable, mesh Ready, charts lint, docker login |
-| `1-worker-pool` | dedicated **`ai-trust`** pool (`m_c16_m128_v2`, 128 Gi, label `workload=ai-trust`); the shared app + operator run here |
-| `2-build-operator-image` | build + push `aitrust-operator:v1` (embeds only `manifests/*.tmpl`) |
-| `2b-build-app-images` | build + push the **MT app images** from `../ai-trust-platform-main` at tag **`aitrust`** (incl. `aitrust-keycloak-provision`, the operator's PROVISION_IMAGE) |
-| `3-provider` | provider ws + **PM chart first** + workload chart + syncagent hostAlias + bind_authenticated; waits APIExport publishes `subscriptions` |
-| `3b-shared-app` | deploy the **ONE shared MT app** (`TENANCY_MODE=jwt`, RLS app role) at `SHARED_APP_HOST`, pinned to `ai-trust` |
-| `4-consumer-workspace` | org + child Account (SAR-poll + Store-wait + webhook-roll, ported from the MSP demo) |
-| `5-bind-apis` | APIBinding to `sub.aitrust.msp` (claims secrets/namespaces/events) — the scripted "Enable" |
-| `6-create-subscription` | create one `Subscription` in the account |
-| `7-verify-portal` | `/pm-content.json` 200 + ContentConfiguration Ready + `Subscription status.ready`; prints tenant URL + realm |
-
-## Requirements
-- The stock mesh on the payload cluster (`ai-trust-1` by default, from `../Standard_Platform_Mesh`), Ready.
-- App source is **cloned from git** by `2b-build-app-images.sh` (repo `github.com/AI-Trust-Services/ai-trust-platform`,
-  branch `APP_GIT_REF_DEFAULT` in config.env, currently `mircea-mt2`). Override per-run with `APP_GIT_REF=...` or
-  build from a local checkout with `APP_SRC=/path`. (The old `../ai-trust-platform-main` local path is NOT used.)
-- `prerequisites/`: `config.env` (source of truth), `garden-kubeconfig.yaml`, `login.sh`, `tls.*`.
-  WSL tools: kubectl, helm, jq, docker, python3.
-
-## Baked-in fixes (a fresh deploy should be clean)
-These were bugs a first-from-scratch deploy hit; all are now in the bundle so `deploy.sh` on a clean cluster works:
-- `TENANCY_JWKS_ISSUER_BASE` set in `config/shared-app/02-secret-config-mt.tmpl` + wired to users-backend in
-  `config/k8s-app/30-app.yaml` (app fail-fasts without it when `TENANCY_MODE=jwt`).
-- `USERS_BACKEND_CLIENT_SECRET` env added to the keycloak-provision Job (`config/k8s-app/20-jobs.yaml`).
-- Keycloak `lifecycle.postStart` sets master realm `sslRequired=NONE` (`config/k8s-app/10-infra.yaml`) — pod IPs
-  are CGNAT/100.64 which Keycloak treats as "external" → HTTP admin token 403'd without this.
-- `3b-shared-app.sh` OpenFGA store-id resolution: store name `aitrust`, paginated exact-match, and the store id is
-  injected into **the operator too** (not just backends) so `seedAdminTuple` runs → a tenant admin gets
-  `platform_administrator` → the shell nav shows ALL sections (a missing store id → nav shows only Overview).
-- `patch_syncagent_hostalias` uses a merge-patch (idempotent) so `root.kcp.localhost`→frontproxy is always set.
-- **Clean re-deploy:** `reset.sh` now also sweeps cluster-scoped leftovers (ClusterRoles, PublishedResources)
-  that would otherwise block `helm install` / poison the syncagent. On a cluster that hosted a prior provider,
-  run `reset.sh` before re-deploying.
-
-## Naming (post-rename, 2026-08-16)
-Display name **"AI Trust Platform"** (no "MT"). Identifiers: ns `aitrust-msp`, API group `sub.aitrust.msp`,
-kcp ws `root:providers:ai-trust`, worker pool `ai-trust`, host `ai-trust[-<org>].<suffix>`, operator image
-`aitrust-operator`. The **ops console** runs in its own ns `aitrust-ops` (repo `operation_provider`).
-
-## Files
-```
-Standard_AiTrust_MT_MSP/
-├── README.md · msp_aitrust_mt_howto.md
-├── prerequisites/ config.env · garden-kubeconfig.yaml · login.sh · tls.*
-├── operator/       main.go · go.mod · Dockerfile · manifests/ (tenant-provision-job.tmpl only)
-├── charts/aitrust-app/     (workload: Subscription CRD, operator, syncagent, portal nginx)
-├── charts/aitrust-pm-app/  (kcp: APIExport, ContentConfiguration, ProviderMetadata, RBAC)
-├── config/k8s-app/   (the gold app manifests — rendered by 3b for the shared app)
-├── config/shared-app/  (MT overlay: pg-init RLS role + secret-config TENANCY_MODE=jwt)
-├── config/ingress/   (gateway-listener + httproute templates, for reference)
-└── scripts/ lib.sh · deploy.sh · 0-check … 2b-build-app-images · 3b-shared-app · 6-create-subscription · 7-verify-portal · reset.sh
+```bash
+bash install.sh --mode federated
+# prompts for CENTRAL_KUBECONFIG and PAYLOAD_KUBECONFIG
+# or set them as env vars for non-interactive use
 ```
 
-## Reused mesh fixes (baked in — from `../Standard_MSP_Demo`)
-- `KCP_INCLUSTER_URL` on **:8443** (chart default :6443 is wrong here).
-- **PM chart before workload chart** (syncagent needs the APIExportEndpointSlice at startup).
-- **syncagent hostAlias** `root.kcp.localhost → frontproxy ClusterIP`.
-- **bind_authenticated** (`apiexport-bind → system:authenticated`) so a portal user can Enable.
-- **ContentConfiguration → in-cluster HTTP Service** (self-signed mesh breaks external-HTTPS CC TLS verify).
-- Tiles are **namespace-scoped** — they render at account → namespace, not the account dashboard.
+Required env var in federated mode: `REMOTE_KUBECONFIG` — the operator crashes at startup with a clear message if it is missing.
 
-## Deploy behavior
-- **`imagePullPolicy: Always`** on all app / job / worker containers (and the operator) — deploys always
-  pull the latest build under the current image tag (`aitrust`), so a rebuild pushed under the same tag
-  is picked up on the next pod start rather than serving a node-cached layer.
+---
+
+## Support, Feedback, Contributing
+
+This project is open to feature requests, bug reports, and contributions via [GitHub issues](https://github.com/AI-Trust-Services/ai-trust-platform-operator/issues). For contribution guidelines see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Security / Disclosure
+
+If you find a security issue, please follow our [security policy](https://github.com/AI-Trust-Services/ai-trust-platform-operator/security/policy). Do not create public GitHub issues for security vulnerabilities.
+
+## Code of Conduct
+
+By participating in this project you agree to abide by our [Code of Conduct](https://github.com/AI-Trust-Services/.github/blob/main/CODE_OF_CONDUCT.md).
+
+## Licensing
+
+Copyright 2026 AI Trust Services contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing is available [via the REUSE tool](https://api.reuse.software/info/github.com/AI-Trust-Services/ai-trust-platform-operator).
+
+<p align="center"><img alt="Bundesministerium für Wirtschaft und Klimaschutz (BMWK)-EU funding logo" src="https://apeirora.eu/assets/img/BMWK-EU.png" width="400"/></p>

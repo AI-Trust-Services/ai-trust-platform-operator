@@ -39,7 +39,7 @@ func (r *reconciler) setPhase(ctx context.Context, cr *unstructured.Unstructured
 
 	st := map[string]interface{}{
 		"ready": ready, "phase": phase, "url": url, "tenantId": tenantID, "realm": realm,
-		"cluster":            remoteCluster, // federated tile Cluster column — workload lives on ai-trust-1
+		"cluster":            remoteCluster, // federated tile Cluster column — workload lives on the payload cluster
 		"observedGeneration": latest.GetGeneration(),
 		"conditions": []interface{}{map[string]interface{}{
 			"type": "Ready", "status": boolStr(ready), "reason": phase,

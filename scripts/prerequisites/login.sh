@@ -1,12 +1,16 @@
 #!/bin/bash
-# login.sh — run ONCE in your Ubuntu terminal before deploy:
-#   bash /mnt/c/claude/projects/eu-ai-trust-platform/Standard_Ai_Platform/prerequisites/login.sh
-# Completes the garden OIDC browser login so the deploy scripts can mint a payload-cluster admin
-# kubeconfig (currently the ai-trust-1 shoot). Re-run if Claude reports "adminkubeconfig failed / access expired".
-export PATH=/home/mircea/.local/bin:/usr/local/bin:/usr/bin:/bin
-export KUBECONFIG=/mnt/c/claude/projects/eu-ai-trust-platform/config/kubeconfig-garden-ai-trust.yaml
-echo ">>> Logging into garden (a browser opens, OR a http://localhost:8000/ URL is printed — log in with SAP creds)."
+# login.sh — run once before deploying to authenticate against the Gardener API.
+# Sets KUBECONFIG to the garden kubeconfig and verifies the shoot is reachable.
+# Re-run if deploy scripts report "adminkubeconfig failed / access expired".
+
+[ -n "$KUBECONFIG" ] || { echo "ERROR: KUBECONFIG env var is not set — point it at your garden kubeconfig."; exit 1; }
+[ -f "$KUBECONFIG" ] || { echo "ERROR: KUBECONFIG file not found: $KUBECONFIG"; exit 1; }
+
+: "${SHOOT_NAME:?SHOOT_NAME is not set}"
+: "${PROJECT:?PROJECT is not set}"
+
+echo ">>> Logging into garden (a browser opens or a http://localhost:8000/ URL is printed — log in with your credentials)."
 echo ""
-kubectl get shoot ai-trust-1 -n garden-ai-trust -o name
+kubectl get shoot "$SHOOT_NAME" -n "$PROJECT" -o name
 echo ""
-echo ">>> If the shoot name shows above, the login is cached. Go back to Claude and say 'go'."
+echo ">>> If the shoot name shows above, the login is cached. You can now run the deploy scripts."
