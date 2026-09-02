@@ -1,5 +1,6 @@
 #!/bin/bash
-# lib.sh — shared helpers for the AI Trust Platform MSP provider deploy (targets shoot ai-trust-1).
+# lib.sh — shared helpers for the AI Trust Platform MSP provider deploy (targets the payload cluster,
+# currently shoot ai-trust-1: the cluster that runs the app + all federated tenants).
 # Reuses the Standard_MSP_Demo mesh helpers (kc, ws_kubeconfig, patch_syncagent_hostalias,
 # bind_authenticated, mint, kcp_portforward) + a render() for the ingress templates.
 # All identifiers come from prerequisites/config.env (MT model: ONE shared app + per-tenant Subscriptions).
@@ -7,7 +8,7 @@ export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUNDLE="$(cd "$LIB_DIR/.." && pwd)"
-PREREQ="$BUNDLE/prerequisites"
+PREREQ="$LIB_DIR/prerequisites"
 CONFIG="$BUNDLE/config"
 STATE="$BUNDLE/.state"; mkdir -p "$STATE"
 
@@ -35,7 +36,10 @@ load_config(){
   : "${REGISTRY:=mirceacraciun795}"; : "${TAG:=aitrust}"
   : "${SHARED_APP_HOST:=ai-trust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu}"
   : "${ORG_NAME:=aitrust}"; : "${ACCOUNT_NAME:=tenant}"; : "${INSTANCE_NAME:=my-subscription}"; : "${INSTANCE_PLAN:=standard}"
-  [ "${SHOOT_NAME:-}" = "ai-trust-1" ] || die "SHOOT_NAME is '${SHOOT_NAME:-}' — this bundle only targets ai-trust-1."
+  # Payload cluster shoot. Default config targets ai-trust-1, but any payload shoot is allowed —
+  # warn (don't die) if it differs so the bundle can deploy onto a different payload cluster.
+  : "${SHOOT_NAME:=ai-trust-1}"
+  [ "$SHOOT_NAME" = "ai-trust-1" ] || warn "SHOOT_NAME is '$SHOOT_NAME' (not the default payload cluster ai-trust-1) — proceeding."
   export SHOOT_NAME PROJECT GARDENER_API MESH_NS GATEWAY_NS GATEWAY_NAME KCP_INCLUSTER_URL
   export WORKER_TYPE WORKER_POOL WORKER_ZONE WORKER_MIN WORKER_MAX WORKER_IMAGE_VERSION MSP_WORKER_LABEL
   export PROVIDER_WS EXPORT_NAME PROVIDER_NS AITRUST_APP_CHART AITRUST_PM_CHART

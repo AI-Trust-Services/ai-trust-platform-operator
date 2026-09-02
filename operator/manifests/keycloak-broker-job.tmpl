@@ -1,15 +1,15 @@
 # keycloak-broker-job.tmpl — Stage 4 (federation SSO, Option A). One-shot Job the FEDERATION controller
-# stamps per federated Subscription, run against ai-trust-1's mesh Keycloak. It:
-#   1. creates the tenant realm `fed-<org>` on a1 if missing (so the controller's realm gate then passes);
-#   2. registers an OIDC Identity Provider alias `prod` in that realm that BROKERS ai-trust-PROD's
-#      Keycloak realm `<baseorg>` — a prod user logging into the a1 tenant is redirected to prod's
-#      Keycloak (first-broker-login), so they SSO with their prod identity;
+# stamps per federated Subscription, run against the payload cluster's (ai-trust-1) mesh Keycloak. It:
+#   1. creates the tenant realm `fed-<org>` on the payload cluster if missing (so the controller's realm gate then passes);
+#   2. registers an OIDC Identity Provider alias `prod` in that realm that BROKERS the Central Cluster's
+#      Keycloak realm `<baseorg>` — a Central Cluster user logging into the payload tenant is redirected to the
+#      Central Cluster's Keycloak (first-broker-login), so they SSO with their Central Cluster identity;
 #   3. adds a hardcoded `tenant_id` = `fed-<org>` attribute/claim on the IdP so brokered logins carry the
-#      tenant. Idempotent (create-or-update). Talks to a1's mesh Keycloak Admin REST API with curl.
+#      tenant. Idempotent (create-or-update). Talks to the payload cluster's mesh Keycloak Admin REST API with curl.
 #
 # Placeholders: __JOB_NAME__ __NS__ __ORG__ __BASEORG__ __POOL_LABEL__ __KC_INTERNAL__
-#   __PROD_KC_PUBLIC__  (prod's public Keycloak base, incl /keycloak — the brokered issuer host)
-#   __PROD_CLIENT_ID__ __SECRET_NAME__ __SECRET_KEY__  (OIDC client the a1 IdP uses at prod)
+#   __PROD_KC_PUBLIC__  (the Central Cluster's public Keycloak base, incl /keycloak — the brokered issuer host)
+#   __PROD_CLIENT_ID__ __SECRET_NAME__ __SECRET_KEY__  (OIDC client the payload IdP uses at the Central Cluster)
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -30,10 +30,10 @@ spec:
         - name: broker
           image: curlimages/curl:8.9.1
           env:
-            - { name: KC, value: "__KC_INTERNAL__" }               # a1 mesh Keycloak internal base incl /keycloak
-            - { name: ORG, value: "__ORG__" }                      # fed-<baseorg>  (the a1 tenant realm)
-            - { name: BASEORG, value: "__BASEORG__" }              # <baseorg>      (prod's realm the IdP brokers)
-            - { name: PROD_KC, value: "__PROD_KC_PUBLIC__" }       # prod public Keycloak base incl /keycloak
+            - { name: KC, value: "__KC_INTERNAL__" }               # payload cluster mesh Keycloak internal base incl /keycloak
+            - { name: ORG, value: "__ORG__" }                      # fed-<baseorg>  (the payload cluster tenant realm)
+            - { name: BASEORG, value: "__BASEORG__" }              # <baseorg>      (the Central Cluster realm the IdP brokers)
+            - { name: PROD_KC, value: "__PROD_KC_PUBLIC__" }       # Central Cluster public Keycloak base incl /keycloak
             - { name: IDP_CLIENT_ID, value: "__PROD_CLIENT_ID__" }
             - { name: IDP_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: __SECRET_NAME__, key: __SECRET_KEY__ } } }
             - { name: KC_ADMIN_USER, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: username } } }

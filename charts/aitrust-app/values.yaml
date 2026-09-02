@@ -7,7 +7,7 @@ exportName: sub.aitrust.msp     # APIExport/EndpointSlice the syncagent binds to
 operator:
   image:
     repository: mirceacraciun795/aitrust-operator
-    tag: v1
+    tag: v21                     # merged mode-driven operator (FEDERATION_MODE defaults to local here)
     pullPolicy: Always
   # env driving the subscription operator (the shared-app coordinates + the tenant-provision image)
   sharedAppHost: ai-trust.ai-trust-1.ai-trust.shoot.gardener.cc-one.showroom.apeirora.eu
@@ -29,6 +29,7 @@ operator:
   dbMigrateImage: mirceacraciun795/aitrust-db-migrate:aitrust  # per-tenant schema provisioning Job image
   chMigrateImage: mirceacraciun795/aitrust-clickhouse-migrate:aitrust  # per-tenant CH database provisioning
   appDbRole: ai_trust_app         # non-superuser runtime Postgres role granted on each tenant schema
+  federationMode: local           # FEDERATION_MODE: local (default) or federated (cross-cluster)
 
 # api-syncagent: mirrors the Subscription CR spec-down / status-up between the kcp
 # provider workspace and this shoot.

@@ -96,6 +96,7 @@ spec:
         - { name: DBMIGRATE_IMAGE, value: "{{ .Values.operator.dbMigrateImage }}" }
         - { name: CHMIGRATE_IMAGE, value: "{{ .Values.operator.chMigrateImage }}" }
         - { name: APP_DB_ROLE, value: "{{ .Values.operator.appDbRole }}" }
+        - { name: FEDERATION_MODE, value: "{{ .Values.operator.federationMode }}" }
         resources:
           requests: { cpu: 50m, memory: 64Mi }
           limits: { cpu: 500m, memory: 256Mi }

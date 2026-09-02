@@ -7,7 +7,7 @@ need(){ command -v "$1" >/dev/null 2>&1 && ok "$1 present" || { err "$1 missing"
 need kubectl; need helm; need jq; need docker; need python3
 
 log "Garden reachable?"
-garden version >/dev/null 2>&1 && ok "garden API reachable" || { err "garden not reachable — run prerequisites/login.sh"; rc=1; }
+garden version >/dev/null 2>&1 && ok "garden API reachable" || { err "garden not reachable — run scripts/prerequisites/login.sh"; rc=1; }
 
 log "Mesh Ready on $SHOOT_NAME?"
 [ -s "$SHOOT_KUBECONFIG" ] || mint_shoot_kubeconfig

@@ -1,28 +1,38 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
+
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 )
 
-// decodeB64 decodes a base64 secret value (Secret .data values are base64-encoded in the API).
-func decodeB64(s string) string {
+// ---- base64 -----------------------------------------------------------------
+
+func decodeB64(s string) (string, error) {
 	if s == "" {
-		return ""
+		return "", nil
 	}
 	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		return s // already plain (e.g. from stringData round-trip)
+		return "", fmt.Errorf("base64 decode: %w", err)
 	}
-	return string(b)
+	return string(b), nil
 }
+
+// ---- OpenFGA HTTP write ------------------------------------------------------
 
 // httpPost writes a tuple to OpenFGA. Treats 200 and 400 (already-exists / duplicate) as success;
 // anything else is an error. Used only for best-effort admin-tuple seeding.
@@ -62,14 +72,14 @@ func itoa(n int) string {
 	return string(b)
 }
 
-// ---- mesh Keycloak realm validation (gate before provisioning) ---------------------
+// ---- mesh Keycloak realm validation -----------------------------------------
 
 type realmCheck int
 
 const (
-	realmExists realmCheck = iota
-	realmMissing
-	realmUnknown // token/network/5xx/parse — inconclusive; caller must fail-closed (not provision)
+	realmExists  realmCheck = iota
+	realmMissing            // realm is definitively absent
+	realmUnknown            // token/network/5xx/parse — inconclusive; caller must fail-closed (not provision)
 )
 
 // kcAdminToken gets an admin access token from the mesh Keycloak (master realm), mirroring the
@@ -137,4 +147,95 @@ func checkRealmExists(ctx context.Context, kcBase, token, org string) realmCheck
 	default:
 		return realmUnknown
 	}
+}
+
+// ---- YAML / unstructured helpers --------------------------------------------
+
+func decodeAll(doc string) []*unstructured.Unstructured {
+	var out []*unstructured.Unstructured
+	dec := utilyaml.NewYAMLOrJSONDecoder(bytes.NewReader([]byte(doc)), 4096)
+	for {
+		m := map[string]interface{}{}
+		if err := dec.Decode(&m); err != nil {
+			break
+		}
+		if len(m) == 0 {
+			continue
+		}
+		out = append(out, &unstructured.Unstructured{Object: m})
+	}
+	return out
+}
+
+// ---- finalizer helpers ------------------------------------------------------
+
+func hasFinalizer(o *unstructured.Unstructured) bool {
+	for _, f := range o.GetFinalizers() {
+		if f == finalizer {
+			return true
+		}
+	}
+	return false
+}
+
+func addFinalizer(o *unstructured.Unstructured) {
+	if hasFinalizer(o) {
+		return
+	}
+	o.SetFinalizers(append(o.GetFinalizers(), finalizer))
+}
+
+func removeFinalizer(o *unstructured.Unstructured) {
+	var out []string
+	for _, f := range o.GetFinalizers() {
+		if f != finalizer {
+			out = append(out, f)
+		}
+	}
+	o.SetFinalizers(out)
+}
+
+// ---- string helpers ---------------------------------------------------------
+
+func strOr(v interface{}, def string) string {
+	if s, ok := v.(string); ok && s != "" {
+		return s
+	}
+	return def
+}
+
+func strFrom(v interface{}) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	return ""
+}
+
+// ---- DNS / naming -----------------------------------------------------------
+
+var nonDNS = regexp.MustCompile(`[^a-z0-9-]`)
+
+func dnsSafe(s string) string {
+	s = strings.ToLower(s)
+	s = nonDNS.ReplaceAllString(s, "-")
+	s = strings.Trim(s, "-")
+	if len(s) > 60 {
+		s = strings.Trim(s[:60], "-")
+	}
+	return s
+}
+
+// ---- crypto -----------------------------------------------------------------
+
+func randHex(n int) string {
+	b := make([]byte, n)
+	_, _ = rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+func boolStr(b bool) string {
+	if b {
+		return "True"
+	}
+	return "False"
 }

@@ -1,4 +1,4 @@
-# AI Trust Platform as an MSP Provider on `ai-trust-1`
+# AI Trust Platform as an MSP Provider
 
 **Version:** 3 (tag `v0.3`) · **Status:** multi-tenant MSP variant is the content of `main`.
 See [`CHANGELOG.md`](CHANGELOG.md) for what changed; the version string lives in [`VERSION`](VERSION).
@@ -16,8 +16,30 @@ A customer sees a tile in the portal, clicks **Enable**, and creates a **Subscri
 - **Fully isolated from the existing `../Standard_AiTrust_MSP` (full-copy) provider** — different API group
   (`sub.aitrust.msp`), workspace (`root:providers:ai-trust`), namespace (`aitrust-msp`), worker pool
   (`ai-trust`), and image tag (`aitrust`). The two providers never collide.
-- **Runs on the stock Platform Mesh already installed on `ai-trust-1`** (`../Standard_Platform_Mesh`).
-  Hard rail: this bundle only targets `ai-trust-1`; never creates/deletes a shoot.
+- **Runs on the stock Platform Mesh already installed on the payload cluster (`ai-trust-1` by default)**
+  (`../Standard_Platform_Mesh`). Hard rail: this bundle only targets the payload cluster; never
+  creates/deletes a shoot.
+
+---
+
+## Federation (multi-cluster)
+
+This operator can run in **two topologies**, and `install.sh` asks which one you want up front:
+
+- **Single-cluster (default):** the Marketplace/portal, the provider, and the app + tenants all live on
+  **one** cluster — the **payload cluster** (`ai-trust-1` by default). Everything in the sections below
+  describes this mode.
+- **Federated (multi-cluster):** the **Central Cluster** (`ai-trust-prod` by default) hosts the
+  Marketplace/portal and the federation controller; a customer's **Enable** on Central is federated out to
+  the **Payload Cluster** (`ai-trust-1` by default), which runs the app + all tenants. The Central Cluster
+  is the consumer; the Payload Cluster is the provider.
+
+In federated mode the wiring is not hardcoded to any one person's local paths — the Central and Payload
+clusters are supplied via env (`CENTRAL_KUBECONFIG`, `PAYLOAD_KUBECONFIG`, `CENTRAL_BUNDLE`, and the
+`PAYLOAD_*` / `CENTRAL_*` value knobs), each defaulting to today's `ai-trust-1` / `ai-trust-prod` values.
+
+Federated mode is enabled via `bash install.sh --mode federated`. Requires `REMOTE_KUBECONFIG` — the
+operator crashes at startup with a clear message if it is missing in federated mode.
 
 ---
 
@@ -118,7 +140,7 @@ Reset (remove subscriptions + shared app + provider, keep the mesh): `bash scrip
 | `7-verify-portal` | `/pm-content.json` 200 + ContentConfiguration Ready + `Subscription status.ready`; prints tenant URL + realm |
 
 ## Requirements
-- The stock mesh on `ai-trust-1` (from `../Standard_Platform_Mesh`), Ready.
+- The stock mesh on the payload cluster (`ai-trust-1` by default, from `../Standard_Platform_Mesh`), Ready.
 - App source is **cloned from git** by `2b-build-app-images.sh` (repo `github.com/AI-Trust-Services/ai-trust-platform`,
   branch `APP_GIT_REF_DEFAULT` in config.env, currently `mircea-mt2`). Override per-run with `APP_GIT_REF=...` or
   build from a local checkout with `APP_SRC=/path`. (The old `../ai-trust-platform-main` local path is NOT used.)

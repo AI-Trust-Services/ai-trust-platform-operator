@@ -28,7 +28,7 @@ TID="$(kc "$WS" -n default get subscription "$INSTANCE_NAME" -o jsonpath='{.stat
 
 echo ""
 echo "======================================================================"
-ok "AI Trust Platform provider live on ai-trust-1"
+ok "AI Trust Platform provider live on the payload cluster (ai-trust-1)"
 echo "   Shared app   : https://$SHARED_APP_HOST  (ONE instance; all tenants share it)"
 echo "   Tenant URL   : ${URL:-<pending>}   (routes to the shared app; tenant resolved from its realm)"
 echo "   Tenant realm : ${REALM:-<pending>}   tenantId=${TID:-<pending>}"

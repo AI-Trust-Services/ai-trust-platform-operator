@@ -76,7 +76,7 @@ PY
 # not exist yet (the syncagent binary would install it on startup, but Helm validates the CR at apply
 # time and fails the whole atomic release: "no matches for kind PublishedResource"). Bundled at
 # ../crds; fall back to the upstream pinned tag if absent. Idempotent.
-CRD_LOCAL="$HERE/../crds/publishedresources.syncagent.kcp.io.yaml"
+CRD_LOCAL="$HERE/../charts/aitrust-app/crds/publishedresources.syncagent.kcp.io.yaml"
 if sk get crd publishedresources.syncagent.kcp.io >/dev/null 2>&1; then
   ok "syncagent PublishedResource CRD already present"
 elif [ -f "$CRD_LOCAL" ]; then
@@ -95,6 +95,7 @@ helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_
   --set operator.registry="$REGISTRY" \
   --set operator.tag="$TAG" \
   --set operator.mspWorkerLabel="$MSP_WORKER_LABEL" \
+  --set operator.federationMode="${FEDERATION_MODE:-local}" \
   --set kcpKubeconfig.inClusterServerUrl="$KCP_INCLUSTER_URL" \
   --set-file kcpKubeconfig.adminContent="$KC_WS" \
   || die "aitrust-app helm install FAILED (see error above) — inspect: helm --kubeconfig \$SHOOT_KUBECONFIG get manifest -n $PROVIDER_NS aitrust-app"
