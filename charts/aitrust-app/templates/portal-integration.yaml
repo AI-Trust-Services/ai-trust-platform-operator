@@ -38,7 +38,7 @@ data:
                   "scope": "Namespaced",
                   "namespace": null,
                   "ui": {
-                    "logoUrl": "https://cdn.jsdelivr.net/gh/ifdotpy/db@master/ai-128.png",
+                    "logoUrl": "https://ai-trust-services.github.io/logo.svg",
                     "createView": {
                       "fields": [
                         { "label": "Name", "property": "metadata.name", "required": true },
