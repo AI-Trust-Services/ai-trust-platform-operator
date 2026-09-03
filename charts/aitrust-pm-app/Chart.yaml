@@ -1,0 +1,6 @@
+apiVersion: v2
+name: aitrust-pm-app
+description: AI Trust Platform Provider
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

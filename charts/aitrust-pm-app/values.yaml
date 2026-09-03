@@ -1,0 +1,14 @@
+# aitrust-pm-app — kcp-side values
+exportName: sub.aitrust.msp
+
+# ContentConfiguration source. Point at the workload chart's IN-CLUSTER nginx over HTTP:
+# the mesh is self-signed and the extension-manager reconciler does strict TLS verification, so an
+# external HTTPS host fails with x509 unknown-authority (proven in Standard_MSP_Demo/PORTAL_TILES_FINDING.md).
+content:
+  publicScheme: http
+  publicHost: aitrust-portal.aitrust-msp.svc.cluster.local
+  path: /pm-content.json
+
+provider:
+  displayName: AI Trust Platform
+  description: End-to-end AI governance platform purpose-built for the EU AI Act

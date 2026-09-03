@@ -1,0 +1,21 @@
+# Gateway listener patch — add a dedicated terminate listener for the app's custom domain.
+# ai-trust.knowledge-suite.cloud is a SIBLING of the mesh domain (not matched by *.portal-mesh...),
+# but the domain-certificate cert is *.knowledge-suite.cloud which DOES cover it. Reuse that cert.
+# Applied as a strategic/JSON patch that APPENDS this listener (idempotent by name) to k8sapi-gateway.
+- op: add
+  path: /spec/listeners/-
+  value:
+    name: terminate-aitrust
+    hostname: __APP_DOMAIN__
+    port: 8443
+    protocol: HTTPS
+    tls:
+      mode: Terminate
+      certificateRefs:
+        - group: ""
+          kind: Secret
+          name: domain-certificate
+          namespace: platform-mesh-system
+    allowedRoutes:
+      namespaces:
+        from: All
