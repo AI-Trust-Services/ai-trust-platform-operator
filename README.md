@@ -161,6 +161,6 @@ By participating in this project you agree to abide by our [Code of Conduct](htt
 
 ## Licensing
 
-Copyright 2026 AI Trust Services contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing is available [via the REUSE tool](https://api.reuse.software/info/github.com/AI-Trust-Services/ai-trust-platform-operator).
+Copyright 2026 SAP SE or an SAP affiliate company and ai-trust-platform-operator contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing is available [via the REUSE tool](https://api.reuse.software/info/github.com/AI-Trust-Services/ai-trust-platform-operator).
 
 <p align="center"><img alt="Bundesministerium für Wirtschaft und Klimaschutz (BMWK)-EU funding logo" src="https://apeirora.eu/assets/img/BMWK-EU.png" width="400"/></p>

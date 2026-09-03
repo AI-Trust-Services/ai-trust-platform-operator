@@ -11,8 +11,4 @@ content:
 
 provider:
   displayName: AI Trust Platform
-  description: >-
-    EU AI Act compliance platform — register AI systems, get automatic risk-tier
-    classification (Annex III), monitoring, alerting, decision-trace analysis and
-    compliance tracking. Each subscription provisions an isolated, self-contained
-    workspace with its own login realm and data isolation.
+  description: End-to-end AI governance platform purpose-built for the EU AI Act

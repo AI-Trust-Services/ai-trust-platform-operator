@@ -1,10 +1,6 @@
 apiVersion: v2
 name: aitrust-pm-app
-description: >-
-  AI Trust Platform provider — kcp/control-plane side. Installed INTO the provider
-  workspace root:providers:ai-trust. Declares the APIExport, the ContentConfiguration (portal tile
-  pointing at the workload chart's in-cluster nginx /pm-content.json), the ProviderMetadata, and the
-  apiexport-bind RBAC so consumers can subscribe.
+description: AI Trust Platform Provider
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

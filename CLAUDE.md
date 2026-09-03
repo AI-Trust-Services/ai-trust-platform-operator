@@ -1,4 +1,4 @@
-# AI Trust Platform — Claude Code context
+# AI Trust Platform Operator — Claude Code context
 
 ## Project layout
 
