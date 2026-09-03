@@ -6,9 +6,3 @@ spec:
   displayName: {{ .Values.provider.displayName | quote }}
   description: |
 {{ .Values.provider.description | indent 4 }}
-  contacts:
-  - displayName: AI Trust Team
-    email: ai-trust@example.com
-    role: ["Technical Support"]
-  preferredSupportChannels:
-  - displayName: AI Trust Help Desk
