@@ -1,0 +1,85 @@
+# keycloak-client-job.tmpl — one-shot Job the operator stamps per Subscription to create (idempotently)
+# a per-ORG oauth2-proxy OIDC client in the SHARED MESH Keycloak realm <ORG>, with a tenant_id=<ORG>
+# hardcoded-claim mapper. This is the auth half of onboarding a tenant: the per-org oauth2-proxy
+# (oauth2-proxy-org.tmpl) binds to realms/<ORG> and uses this client + secret.
+#
+# It talks to the mesh Keycloak Admin REST API with curl (no kcadm image needed). Admin creds come from
+# the mesh keycloak-admin secret, mounted via env from a copy the deploy places in the provider ns
+# (KC_ADMIN_USER/KC_ADMIN_PASS below resolve from the app-secrets KEYCLOAK_ADMIN* keys, which the deploy
+# points at the mesh bootstrap admin).
+#
+# Placeholders: __JOB_NAME__ __NS__ __ORG__ __POOL_LABEL__ __KC_INTERNAL__ __CB_URL__ __ORIGIN__
+#   __CLIENT_ID__ __SECRET_NAME__ __SECRET_KEY__
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: __NS__
+  labels: { app.kubernetes.io/managed-by: aitrust-operator, org: "__ORG__" }
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 900
+  template:
+    metadata:
+      labels: { app: kc-client-provision, org: "__ORG__" }
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector: { workload: __POOL_LABEL__ }
+      tolerations: [{ key: workload, value: __POOL_LABEL__, effect: NoSchedule }]
+      containers:
+        - name: provision
+          image: curlimages/curl:8.9.1
+          env:
+            - { name: KC, value: "__KC_INTERNAL__" }              # e.g. http://keycloak-service.platform-mesh-system:8080/keycloak
+            - { name: ORG, value: "__ORG__" }
+            - { name: CLIENT_ID, value: "__CLIENT_ID__" }
+            - { name: CB, value: "__CB_URL__" }
+            - { name: ORIGIN, value: "__ORIGIN__" }
+            - { name: CLIENT_SECRET, valueFrom: { secretKeyRef: { name: __SECRET_NAME__, key: __SECRET_KEY__ } } }
+            - { name: KC_ADMIN_USER, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: username } } }
+            - { name: KC_ADMIN_PASS, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: password } } }
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              echo "provisioning client $CLIENT_ID in realm $ORG on $KC"
+              TOK=$(curl -s --fail "$KC/realms/master/protocol/openid-connect/token" \
+                -d grant_type=password -d client_id=admin-cli \
+                -d "username=$KC_ADMIN_USER" -d "password=$KC_ADMIN_PASS" | \
+                sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+              [ -n "$TOK" ] || { echo "admin token failed"; exit 1; }
+              AUTH="Authorization: Bearer $TOK"
+              # client body shared by create (POST) and update (PUT). postLogoutRedirectUris lets Keycloak
+              # accept the post-logout redirect back to the tenant host (required for oauth2-proxy sign_out).
+              BODY="{
+                    \"clientId\":\"$CLIENT_ID\",\"enabled\":true,\"protocol\":\"openid-connect\",
+                    \"publicClient\":false,\"standardFlowEnabled\":true,\"directAccessGrantsEnabled\":false,
+                    \"secret\":\"$CLIENT_SECRET\",\"redirectUris\":[\"$CB\"],\"webOrigins\":[\"$ORIGIN\"],
+                    \"attributes\":{\"post.logout.redirect.uris\":\"$ORIGIN##$ORIGIN/*\"},
+                    \"fullScopeAllowed\":true,
+                    \"protocolMappers\":[{
+                      \"name\":\"tenant_id\",\"protocol\":\"openid-connect\",
+                      \"protocolMapper\":\"oidc-hardcoded-claim-mapper\",
+                      \"config\":{\"claim.name\":\"tenant_id\",\"claim.value\":\"$ORG\",
+                        \"jsonType.label\":\"String\",\"id.token.claim\":\"true\",
+                        \"access.token.claim\":\"true\",\"userinfo.token.claim\":\"true\"}
+                    }]
+                  }"
+              # already exists? (fetch its internal id — grep -oE is non-greedy per match, unlike a
+              # greedy sed .* which would grab a nested protocolMapper "id" from compact JSON)
+              ID=$(curl -s -H "$AUTH" "$KC/admin/realms/$ORG/clients?clientId=$CLIENT_ID" | \
+                grep -oE '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"//')
+              if [ -n "$ID" ]; then
+                echo "client $CLIENT_ID exists in $ORG (id=$ID) — updating (post-logout redirect + secret)"
+                HTTP=$(curl -s -o /tmp/put.out -w '%{http_code}' -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$ORG/clients/$ID" -d "$BODY")
+                if [ "$HTTP" != "204" ] && [ "$HTTP" != "200" ]; then
+                  echo "PUT update failed (http $HTTP): $(cat /tmp/put.out)"; exit 1
+                fi
+                echo "updated client $CLIENT_ID in $ORG (http $HTTP)"
+              else
+                curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$ORG/clients" -d "$BODY"
+                echo "created client $CLIENT_ID in $ORG (tenant_id=$ORG mapper)"
+              fi
+              echo "done"

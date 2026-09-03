@@ -1,0 +1,69 @@
+# keycloak-prod-client-job.tmpl — Stage 6 (reciprocal SSO half). One-shot Job the FEDERATION controller
+# stamps on PROD (its LOCAL cluster) per federated Subscription. It registers the OIDC client that a1's
+# `prod` IdP uses to authenticate against PROD's Keycloak realm <baseorg>, so the SSO redirect completes:
+#   a1 fed-<org> realm  --IdP 'prod'-->  PROD realm <baseorg>  (this client)  -->  back to a1.
+# Runs on prod, talks to prod's IN-CLUSTER mesh Keycloak (reachable here), uses prod's mesh-admin creds.
+# Idempotent create-or-update. The client SECRET is the SAME per-org value the a1 IdP holds
+# (aitrust-fedbroker-<org>), so the two sides agree.
+#
+# Placeholders: __JOB_NAME__ __NS__ __ORG__ __BASEORG__ __POOL_LABEL__ __PROD_KC_INTERNAL__
+#   __A1_BROKER_REDIRECT__  (a1 broker endpoint) __CLIENT_ID__ __SECRET_NAME__ __SECRET_KEY__
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: __JOB_NAME__
+  namespace: __NS__
+  labels: { app.kubernetes.io/managed-by: aitrust-federation, org: "__ORG__" }
+spec:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 900
+  template:
+    metadata:
+      labels: { app: kc-prod-client-provision, org: "__ORG__" }
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: provision
+          image: curlimages/curl:8.9.1
+          env:
+            - { name: KC, value: "__PROD_KC_INTERNAL__" }          # PROD in-cluster mesh Keycloak incl /keycloak
+            - { name: BASEORG, value: "__BASEORG__" }              # the PROD realm we register the client in
+            - { name: CLIENT_ID, value: "__CLIENT_ID__" }          # aitrust-fed-broker
+            - { name: REDIRECT, value: "__A1_BROKER_REDIRECT__" }  # a1 fed-<org> broker callback endpoint
+            - { name: CLIENT_SECRET, valueFrom: { secretKeyRef: { name: __SECRET_NAME__, key: __SECRET_KEY__ } } }
+            - { name: KC_ADMIN_USER, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: username } } }
+            - { name: KC_ADMIN_PASS, valueFrom: { secretKeyRef: { name: mesh-keycloak-admin, key: password } } }
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              echo "prod-client: ensuring client $CLIENT_ID in PROD realm $BASEORG on $KC (redirect=$REDIRECT)"
+              TOK=$(curl -s --fail "$KC/realms/master/protocol/openid-connect/token" \
+                -d grant_type=password -d client_id=admin-cli \
+                -d "username=$KC_ADMIN_USER" -d "password=$KC_ADMIN_PASS" | \
+                sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+              [ -n "$TOK" ] || { echo "admin token failed"; exit 1; }
+              AUTH="Authorization: Bearer $TOK"
+              # gate: the PROD realm must exist. If not, this is not a real org yet — exit non-zero so the
+              # controller surfaces it (federated tenant still works; only the SSO round-trip needs this).
+              RC=$(curl -s -o /dev/null -w '%{http_code}' -H "$AUTH" "$KC/admin/realms/$BASEORG")
+              [ "$RC" = "200" ] || { echo "PROD realm $BASEORG does not exist (http $RC) — cannot wire reciprocal SSO client"; exit 1; }
+              BODY="{
+                    \"clientId\":\"$CLIENT_ID\",\"enabled\":true,\"protocol\":\"openid-connect\",
+                    \"publicClient\":false,\"standardFlowEnabled\":true,\"directAccessGrantsEnabled\":false,
+                    \"secret\":\"$CLIENT_SECRET\",\"redirectUris\":[\"$REDIRECT\"],
+                    \"attributes\":{},\"fullScopeAllowed\":true
+                  }"
+              ID=$(curl -s -H "$AUTH" "$KC/admin/realms/$BASEORG/clients?clientId=$CLIENT_ID" | \
+                grep -oE '"id":"[^"]*"' | head -1 | sed 's/"id":"//;s/"//')
+              if [ -n "$ID" ]; then
+                HTTP=$(curl -s -o /tmp/put.out -w '%{http_code}' -X PUT -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$BASEORG/clients/$ID" -d "$BODY")
+                [ "$HTTP" = "204" ] || [ "$HTTP" = "200" ] || { echo "PUT failed (http $HTTP): $(cat /tmp/put.out)"; exit 1; }
+                echo "updated client $CLIENT_ID in PROD realm $BASEORG (http $HTTP)"
+              else
+                curl -s --fail -X POST -H "$AUTH" -H "Content-Type: application/json" \
+                  "$KC/admin/realms/$BASEORG/clients" -d "$BODY"
+                echo "created client $CLIENT_ID in PROD realm $BASEORG (redirect $REDIRECT)"
+              fi
+              echo "done: reciprocal SSO client ready"

@@ -1,0 +1,9 @@
+# v1alpha2 + metadata-only: the sync-agent owns spec.resources/permissionClaims (writes them via
+# v1alpha1 with all:true). Shipping a spec here would break the sync-agent's convergence (see the
+# private-llm-pm chart's note). Keep this a bare shell.
+apiVersion: apis.kcp.io/v1alpha2
+kind: APIExport
+metadata:
+  name: {{ .Values.exportName }}
+  labels:
+    ui.platform-mesh.io/content-for: {{ .Values.exportName }}

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: pg-init, namespace: ai-trust-app }
+data:
+  # Runs on Postgres first boot. Creates the keycloak DB (as before) AND the NON-SUPERUSER app role
+  # that the runtime backends use so Row-Level Security is enforced (a superuser bypasses RLS).
+  # Grants are applied broadly; per-table grants also flow via ALTER DEFAULT PRIVILEGES after migrations.
+  init.sh: |
+    set -e
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" \
+      -c "CREATE DATABASE keycloak" 2>/dev/null || true
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<'SQL'
+    DO $$
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'ai_trust_app') THEN
+        CREATE ROLE ai_trust_app LOGIN PASSWORD 'apppw';
+      END IF;
+    END $$;
+    ALTER ROLE ai_trust_app NOBYPASSRLS NOSUPERUSER NOINHERIT;
+    GRANT CONNECT ON DATABASE ai_trust TO ai_trust_app;
+    GRANT USAGE ON SCHEMA public TO ai_trust_app;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ai_trust_app;
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ai_trust_app;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ai_trust_app;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO ai_trust_app;
+    SQL

@@ -1,0 +1,8 @@
+apiVersion: ui.platform-mesh.io/v1alpha1
+kind: ProviderMetadata
+metadata:
+  name: {{ .Values.exportName }}
+spec:
+  displayName: {{ .Values.provider.displayName | quote }}
+  description: |
+{{ .Values.provider.description | indent 4 }}

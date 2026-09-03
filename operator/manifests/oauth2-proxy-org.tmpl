@@ -1,0 +1,93 @@
+# oauth2-proxy-org.tmpl — per-ORG oauth2-proxy + Service + HTTPRoute + ReferenceGrant, stamped by the
+# operator for each Subscription. Each org's proxy binds to its OWN mesh Keycloak realm (realms/<ORG>) and
+# routes a per-org host (ai-trust-<ORG>.<suffix>) to the ONE SHARED app (upstream http://shell:80).
+# This is how many org realms authenticate into a single shared app: one proxy per realm, one host per org,
+# same shell. Tenant is carried by the token (tenant_id=<ORG> claim mapper + iss fallback) → libs/tenancy.
+#
+# Mirrors the proven poc2 wiring: in-cluster mesh keycloak for issuer/redeem/jwks/logout, PUBLIC host for
+# the browser login-url, --skip-oidc-discovery + --insecure-oidc-skip-issuer-verification (token issuer is
+# the public host, redeem is in-cluster) + --insecure-oidc-allow-unverified-email (mesh users unverified).
+#
+# Placeholders: __ORG__ __NS__ __ORG_HOST__ __KC_INTERNAL_REALM__ __KC_PUBLIC_REALM__ __SECRET_NAME__
+#   __SECRET_KEY__ __COOKIE_SECRET__ __GATEWAY_NS__ __GATEWAY_NAME__ __GATEWAY_SECTION__
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy-__ORG__
+  namespace: __NS__
+  labels: { app: oauth2-proxy-org, org: "__ORG__", app.kubernetes.io/managed-by: aitrust-operator }
+spec:
+  replicas: __REPLICAS__
+  selector: { matchLabels: { app: oauth2-proxy-org, org: "__ORG__" } }
+  template:
+    metadata:
+      labels: { app: oauth2-proxy-org, org: "__ORG__" }
+    spec:
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.6.0
+          args:
+            - --provider=oidc
+            - --client-id=aitrust-app
+            - --client-secret=$(CLIENT_SECRET)
+            - --oidc-issuer-url=__KC_INTERNAL_REALM__
+            - --login-url=__KC_PUBLIC_REALM__/protocol/openid-connect/auth
+            - --redeem-url=__KC_INTERNAL_REALM__/protocol/openid-connect/token
+            - --oidc-jwks-url=__KC_INTERNAL_REALM__/protocol/openid-connect/certs
+            - --skip-oidc-discovery=true
+            # auto-redirect unauthenticated browser hits straight to Keycloak login instead of showing
+            # oauth2-proxy's own sign-in-button page (403 HTML). Without this, after logout the app just
+            # sees 403s and never bounces to login.
+            - --skip-provider-button=true
+            - --insecure-oidc-skip-issuer-verification=true
+            - --insecure-oidc-allow-unverified-email=true
+            - --redirect-url=https://__ORG_HOST__/oauth2/callback
+            - --upstream=http://shell:80
+            - --http-address=0.0.0.0:4180
+            - --reverse-proxy=true
+            - --cookie-secret=__COOKIE_SECRET__
+            - --cookie-secure=true
+            - --email-domain=*
+            - --pass-authorization-header=true
+            - --pass-access-token=true
+            - --backend-logout-url=__KC_PUBLIC_REALM__/protocol/openid-connect/logout?id_token_hint={id_token}
+            # allow /oauth2/sign_out?rd=<keycloak logout URL> to redirect the browser to the Keycloak
+            # end-session endpoint (front-channel logout — ends the SSO cookie, not just the proxy cookie).
+            # The leading-dot form whitelists the apex AND all subdomains under it (tenant host + keycloak host).
+            - --whitelist-domain=__WHITELIST_DOMAIN__
+            - --whitelist-domain=*.__WHITELIST_DOMAIN__
+          env:
+            - { name: CLIENT_SECRET, valueFrom: { secretKeyRef: { name: __SECRET_NAME__, key: __SECRET_KEY__ } } }
+          ports: [{ containerPort: 4180 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy-__ORG__
+  namespace: __NS__
+  labels: { app: oauth2-proxy-org, org: "__ORG__", app.kubernetes.io/managed-by: aitrust-operator }
+spec:
+  selector: { app: oauth2-proxy-org, org: "__ORG__" }
+  ports: [{ port: 8080, targetPort: 4180 }]
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: aitrust-__ORG__
+  namespace: __GATEWAY_NS__
+  labels: { app.kubernetes.io/managed-by: aitrust-operator, org: "__ORG__" }
+spec:
+  parentRefs: [{ name: __GATEWAY_NAME__, namespace: __GATEWAY_NS__, sectionName: __GATEWAY_SECTION__ }]
+  hostnames: ["__ORG_HOST__"]
+  rules:
+    - backendRefs: [{ group: "", kind: Service, name: oauth2-proxy-__ORG__, namespace: __NS__, port: 8080 }]
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gw-to-oauth2-__ORG__
+  namespace: __NS__
+  labels: { app.kubernetes.io/managed-by: aitrust-operator, org: "__ORG__" }
+spec:
+  from: [{ group: gateway.networking.k8s.io, kind: HTTPRoute, namespace: __GATEWAY_NS__ }]
+  to: [{ group: "", kind: Service }]

@@ -1,0 +1,13 @@
+# ContentConfiguration — tells the portal where to fetch the marketplace MFE (/pm-content.json).
+# URL = <scheme>://<host><path> = the workload chart's in-cluster nginx (HTTP, no TLS on a self-signed mesh).
+apiVersion: ui.platform-mesh.io/v1alpha1
+kind: ContentConfiguration
+metadata:
+  name: aitrust-ui
+  labels:
+    ui.platform-mesh.io/entity: core_platform-mesh_io_account
+    ui.platform-mesh.io/content-for: {{ .Values.exportName }}
+spec:
+  remoteConfiguration:
+    url: {{ printf "%s://%s%s" .Values.content.publicScheme .Values.content.publicHost .Values.content.path | quote }}
+    contentType: json

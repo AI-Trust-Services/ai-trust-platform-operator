@@ -1,0 +1,57 @@
+# aitrust-app — workload chart values
+nameOverride: aitrust
+exportName: sub.aitrust.msp     # APIExport/EndpointSlice the syncagent binds to (must match the pm chart)
+
+# The MT operator that provisions a per-tenant realm + tenant_id isolation inside the ONE shared app
+# per Subscription.
+operator:
+  image:
+    repository: ghcr.io/ai-trust-services/aitrust-operator
+    tag: v21                     # merged mode-driven operator (FEDERATION_MODE defaults to local here)
+    pullPolicy: Always
+  # env driving the subscription operator (the shared-app coordinates + the tenant-provision image)
+  sharedAppHost: ""
+  providerNamespace: aitrust-msp
+  provisionImage: ghcr.io/ai-trust-services/aitrust-keycloak-provision:aitrust
+  registry: ghcr.io/ai-trust-services
+  tag: aitrust                 # MT app image tag
+  gatewayNamespace: platform-mesh-system
+  gatewayName: k8sapi-gateway
+  mspWorkerLabel: ai-trust     # node pool label the shared app + operator pin to
+  # v5 multi-realm auth
+  domainSuffix: ""
+  gatewaySection: terminate-wildstar
+  kcInternalUrl: http://keycloak-service.platform-mesh-system.svc.cluster.local:8080/keycloak
+  kcPublicUrl: ""
+  openfgaUrl: http://openfga.platform-mesh-system.svc.cluster.local:8080
+  openfgaStoreId: ""              # the ONE shared app store id (set by 3b-shared-app.sh / deploy)
+  meshKcAdminSecret: keycloak-admin  # mesh Keycloak bootstrap-admin secret (in gatewayNamespace) the operator copies
+  dbMigrateImage: ghcr.io/ai-trust-services/aitrust-db-migrate:latest
+  chMigrateImage: ghcr.io/ai-trust-services/aitrust-clickhouse-migrate:latest
+  appDbRole: ai_trust_app         # non-superuser runtime Postgres role granted on each tenant schema
+  federationMode: local           # FEDERATION_MODE: local (default) or federated (cross-cluster)
+
+# api-syncagent: mirrors the Subscription CR spec-down / status-up between the kcp
+# provider workspace and this shoot.
+syncagent:
+  image:
+    repository: ghcr.io/kcp-dev/api-syncagent
+    tag: v0.5.1
+    pullPolicy: IfNotPresent
+kcpKubeconfig:
+  # MUST be :8443 on this mesh (chart-default :6443 is wrong here — the #1 syncagent-timeout gotcha).
+  inClusterServerUrl: https://frontproxy-front-proxy.platform-mesh-system.svc.cluster.local:8443
+  # the mesh kcp-admin kubeconfig content is injected at install via --set-file kcpKubeconfig.adminContent
+  adminContent: ""
+
+# Portal content nginx serving /pm-content.json (the marketplace tile). MUST be enabled — off is the
+# #1 "tile never renders" cause (see Standard_MSP_Demo/PORTAL_TILES_FINDING.md).
+portalIntegration:
+  enabled: true
+  image:
+    repository: nginx
+    tag: "1.27"
+    pullPolicy: IfNotPresent
+
+# Where the operator + syncagent themselves run (the MT control plane, one shared app instance).
+nodeSelector: {}
