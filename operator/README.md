@@ -61,8 +61,8 @@ The `fed-` prefix is applied once (`fedPrefix` global) and flows through every d
 | `OPENFGA_STORE_ID` | *(empty)* | OpenFGA store ID for admin tuple seeding |
 | `MESH_KC_ADMIN_NS` | `platform-mesh-system` | Namespace of the Keycloak admin secret |
 | `MESH_KC_ADMIN_SECRET` | `keycloak-admin` | Name of the Keycloak admin secret |
-| `DBMIGRATE_IMAGE` | `mirceacraciun795/aitrust-db-migrate:aitrust` | Postgres migration Job image |
-| `CHMIGRATE_IMAGE` | `mirceacraciun795/aitrust-clickhouse-migrate:aitrust` | ClickHouse migration Job image |
+| `DBMIGRATE_IMAGE` | `ghcr.io/ai-trust-services/aitrust-db-migrate:aitrust` | Postgres migration Job image |
+| `CHMIGRATE_IMAGE` | `ghcr.io/ai-trust-services/aitrust-clickhouse-migrate:aitrust` | ClickHouse migration Job image |
 | `APP_DB_ROLE` | `ai_trust_app` | Non-superuser Postgres runtime role |
 | `REMOTE_KUBECONFIG` | `/etc/a1/kubeconfig` | Payload cluster SA kubeconfig (federated mode only) |
 | `PAYLOAD_CLUSTER_NAME` | `ai-trust-1` | Cluster name written to `status.cluster` (federated) |
