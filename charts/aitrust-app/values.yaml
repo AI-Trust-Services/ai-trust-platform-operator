@@ -48,6 +48,7 @@ kcpKubeconfig:
 # #1 "tile never renders" cause (see Standard_MSP_Demo/PORTAL_TILES_FINDING.md).
 portalIntegration:
   enabled: true
+  categoryLabel: "AI Trust Platform"
   image:
     repository: nginx
     tag: "1.27"
