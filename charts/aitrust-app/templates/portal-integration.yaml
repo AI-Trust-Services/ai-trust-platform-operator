@@ -21,7 +21,7 @@ data:
               "label": "Subscriptions",
               "icon": "shield",
               "entityType": "main.core_platform-mesh_io_account.namespace",
-              "category": { "label": "AI Trust Platform", "icon": "shield", "collapsible": true, "order": 810 },
+              "category": { "label": {{ .Values.portalIntegration.categoryLabel | default "AI Trust Platform" | toJson }}, "icon": "shield", "collapsible": true, "order": 810 },
               "url": "/assets/platform-mesh-portal-ui-wc.js#generic-list-view",
               "webcomponent": { "selfRegistered": true },
               "keepSelectedForChildren": true,

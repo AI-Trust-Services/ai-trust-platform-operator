@@ -101,6 +101,12 @@ Two Helm charts + the shared app + the subscription operator:
 | **`charts/aitrust-pm-app`** (kcp) | workspace `root:providers:ai-trust` | APIExport `sub.aitrust.msp`, ContentConfiguration, ProviderMetadata, RBAC |
 | **shared app** (`3b-shared-app.sh`) | cluster ns `aitrust-msp` | ONE multi-tenant AI Trust stack (`TENANCY_MODE=jwt`) |
 
+> **Renaming the product** requires updating both charts — there is no single shared value:
+> - Portal tile label: `--set portalIntegration.categoryLabel="New Name"` on the `aitrust-app` release (shoot cluster)
+> - Marketplace catalog name: `--set provider.displayName="New Name"` on the `aitrust-pm-app` release (KCP workspace `root:providers:ai-trust`)
+>
+> Both upgrades must be applied together to keep the two names in sync.
+
 **Tenant provisioning flow:**
 
 ```
