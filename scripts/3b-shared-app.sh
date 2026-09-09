@@ -160,16 +160,26 @@ sk -n "$NS" wait --for=condition=complete job/openfga-provision --timeout=180s |
 # resolve the store id the provisioner created — paginate + EXACT name match (jq-free via python).
 # NOTE the provisioner creates the store under $OPENFGA_STORE_NAME; the mesh OpenFGA holds many stores
 # so a single unpaginated page + loose grep can miss it (that shipped __OPENFGA_STORE_ID__ once).
-STORE_ID="$(sk -n "$NS" run fgaid-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.9.1 --quiet --command -- \
-  sh -c "curl -s '$OPENFGA_MESH_URL/stores?page_size=200'" 2>/dev/null \
-  | python3 -c "import sys,json;d=json.load(sys.stdin);print(next((s['id'] for s in d.get('stores',[]) if s.get('name')=='$OPENFGA_STORE_NAME'),''))" 2>/dev/null)"
+STORE_ID=""
+for attempt in 1 2 3 4 5; do
+  STORE_ID="$(sk -n "$NS" run fgaid-$RANDOM --rm -i --restart=Never --image=curlimages/curl:8.9.1 --quiet --command -- \
+    sh -c "curl -s '$OPENFGA_MESH_URL/stores?page_size=200'" 2>/dev/null \
+    | python3 -c "import sys,json;d=json.load(sys.stdin);print(next((s['id'] for s in d.get('stores',[]) if s.get('name')=='$OPENFGA_STORE_NAME'),''))" 2>/dev/null)"
+  [ -n "$STORE_ID" ] && break
+  warn "store-id resolution attempt $attempt/5 empty; retrying in 6s …"; sleep 6
+done
 if [ -n "$STORE_ID" ]; then
   ok "app OpenFGA store '$OPENFGA_STORE_NAME' id = $STORE_ID"
   log "Setting OPENFGA_URL + OPENFGA_STORE_ID on all backends + the operator …"
-  # backends AND the operator need it (operator's seedAdminTuple skips silently if storeID is empty)
-  for d in $(sk -n "$NS" get deploy -o name | grep -E 'backend|aitrust-operator|policy-checker|otel-clickhouse-consumer'); do
+  # backends AND the operator need it (operator's seedAdminTuple skips silently if storeID is empty).
+  # 'marketplace' matches marketplace-backend + marketplace-health-worker (both do OpenFGA checks).
+  for d in $(sk -n "$NS" get deploy -o name | grep -E 'backend|aitrust-operator|policy-checker|otel-clickhouse-consumer|marketplace'); do
     sk -n "$NS" set env "$d" OPENFGA_URL="$OPENFGA_MESH_URL" OPENFGA_STORE_ID="$STORE_ID" >/dev/null || true
   done
+  # VERIFY no deployment still carries the placeholder — a one-shot resolution race used to leave
+  # __OPENFGA_STORE_ID__ on every backend, silently failing ALL authz (403, nav shows only Overview).
+  STILL="$(sk -n "$NS" get deploy -o json | python3 -c "import sys,json;d=json.load(sys.stdin);print(' '.join(sorted({dep['metadata']['name'] for dep in d['items'] for c in dep['spec']['template']['spec']['containers'] for e in c.get('env',[]) if e.get('name')=='OPENFGA_STORE_ID' and e.get('value')=='__OPENFGA_STORE_ID__'})))" 2>/dev/null)"
+  [ -n "$STILL" ] && warn "these deployments STILL have OPENFGA_STORE_ID=__OPENFGA_STORE_ID__ (authz will 403): $STILL — re-run: kubectl -n $NS set env deploy/<name> OPENFGA_STORE_ID=$STORE_ID"
 else
   warn "could not resolve the OpenFGA store id — backends + operator will fail authz until OPENFGA_STORE_ID is set (nav shows only Overview; seedAdminTuple skipped). Check the openfga-provision job logs + store name '$OPENFGA_STORE_NAME'."
 fi
