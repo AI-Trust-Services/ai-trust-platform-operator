@@ -14,10 +14,10 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: aitrust-syncagent
+  name: aitrust-syncagent-{{ .Release.Namespace }}
 rules:
 # the published CR (mirrored objects land in per-consumer namespaces on this cluster)
-- apiGroups: ["sub.aitrust.msp"]
+- apiGroups: [{{ .Values.exportName | quote }}]
   resources: [subscriptions, subscriptions/status]
   verbs: ["*"]
 # read the local CRD to generate the APIResourceSchema published to kcp
@@ -39,11 +39,11 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: aitrust-syncagent
+  name: aitrust-syncagent-{{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: aitrust-syncagent
+  name: aitrust-syncagent-{{ .Release.Namespace }}
 subjects:
 - kind: ServiceAccount
   name: aitrust-syncagent
@@ -86,9 +86,9 @@ spec:
         - --namespace=$(POD_NAMESPACE)
         - --enable-leader-election=true
         - --apiexportendpointslice-ref={{ .Values.exportName }}
-        - --agent-name=aitrust-agent
+        - --agent-name=aitrust-agent-{{ .Release.Namespace }}
         - --kcp-kubeconfig=/etc/api-syncagent/kcp/kubeconfig
-        - --published-resource-selector=app.kubernetes.io/name=aitrust-syncagent
+        - --published-resource-selector=app.kubernetes.io/instance={{ .Release.Namespace }}
         env:
         - name: POD_NAMESPACE
           valueFrom:
@@ -106,13 +106,13 @@ spec:
 apiVersion: syncagent.kcp.io/v1alpha1
 kind: PublishedResource
 metadata:
-  name: publish-aitrust-subscriptions
+  name: publish-aitrust-subscriptions-{{ .Release.Namespace }}
   namespace: {{ .Release.Namespace }}
-  labels: { app.kubernetes.io/name: aitrust-syncagent }
+  labels: { app.kubernetes.io/name: aitrust-syncagent, app.kubernetes.io/instance: {{ .Release.Namespace }} }
 spec:
   resource:
     kind: Subscription
-    apiGroup: sub.aitrust.msp
+    apiGroup: {{ .Values.exportName }}
     version: v1alpha1
   naming:
     namespace: "{{`{{ .ClusterName }}`}}"

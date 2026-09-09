@@ -10,7 +10,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: aitrust-operator
+  name: aitrust-operator-{{ .Release.Namespace }}
 rules:
 - apiGroups: [""]
   resources: [namespaces]
@@ -30,18 +30,18 @@ rules:
 - apiGroups: ["gateway.networking.k8s.io"]
   resources: [gateways]
   verbs: [get, list, watch, update, patch]
-- apiGroups: ["sub.aitrust.msp"]
+- apiGroups: [{{ .Values.exportName | quote }}]
   resources: [subscriptions, subscriptions/status]
   verbs: [get, list, watch, update, patch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: aitrust-operator
+  name: aitrust-operator-{{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: aitrust-operator
+  name: aitrust-operator-{{ .Release.Namespace }}
 subjects:
 - kind: ServiceAccount
   name: aitrust-operator
@@ -72,6 +72,7 @@ spec:
         env:
         # the subscription operator provisions a tenant in the shared app — it needs the shared-app
         # coordinates + the per-tenant-realm provisioner image, NOT per-copy render vars.
+        - { name: SUBSCRIPTION_GROUP, value: {{ .Values.exportName | quote }} }
         - { name: PROVIDER_NS, value: "{{ .Values.operator.providerNamespace }}" }
         - { name: SHARED_APP_HOST, value: "{{ .Values.operator.sharedAppHost }}" }
         - { name: PROVISION_IMAGE, value: "{{ .Values.operator.provisionImage }}" }
