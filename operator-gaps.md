@@ -192,6 +192,28 @@ and bare-`kubectl apply`'d objects aren't helm-owned so the release can't adopt 
 **Fix/workaround:** re-inject `OPENFGA_STORE_ID` after each helm upgrade; never hand-apply release-owned
 objects. Longer-term: have the operator resolve the store id itself (query mesh OpenFGA by name).
 
+### LIVE-N — 3b store-id resolution races → every backend ships `__OPENFGA_STORE_ID__` → all authz 403
+**Symptom:** login succeeds and the token is perfect (`preferred_username`/`email`/`tenant_id` all
+present — verified via Keycloak `evaluate-scopes/generate-example-id-token`), oauth2-proxy logs the
+session user as `mircea.craciun@sap.com`, and the admin tuple `user:mircea.craciun@sap.com → member →
+role:platform_administrator` exists in the store — yet the app shows username **`?`** and only the
+Overview nav; every gated `/api/*` returns **403** (only ungated `/api/overview/*` returns 200).
+**Root cause:** `3b-shared-app.sh` resolves the app OpenFGA store id with a ONE-SHOT throwaway curl pod
+(`fgaid-$RANDOM`) piped to local `python3`. If that pod returns empty (image-pull delay / not-ready
+race) `STORE_ID=""`, the `else` branch only `warn`s, and **every backend keeps the literal
+`OPENFGA_STORE_ID=__OPENFGA_STORE_ID__`** baked in `30-app.yaml`. Backends then `check()` against a
+non-existent store → fail-closed → 403 on every permission; `users-backend /me` can't resolve the user
+→ frontend shows `?`. (Only `marketplace-backend`, set by hand earlier, had the real id.) The identity
+path and the admin seeding were both fine — the store *pointer* was the break.
+**Fix (branch `marketplace`):** `3b-shared-app.sh` now (a) RETRIES the store-id resolution 5× before
+giving up, (b) includes `marketplace` (backend + health-worker) in the injected deployments, and
+(c) after injecting, VERIFIES no deployment still carries `__OPENFGA_STORE_ID__` and warns loudly with
+the exact remediation command if any do. Live remediation (applied on ai-trust-1 tenant `test`):
+`for d in $(kubectl -n <ns> get deploy -o name | grep -E 'backend|aitrust-operator|policy-checker|marketplace'); do kubectl -n <ns> set env $d OPENFGA_STORE_ID=<id>; done`.
+Verified: OpenFGA `check(user:mircea.craciun@sap.com, can_manage_iam, platform:global)=allowed` →
+full platform-administrator nav + username restored. **Longer-term (also noted in LIVE-K):** have the
+operator resolve + inject the store id itself so this never depends on a 3b post-step.
+
 ### LIVE-L — 3-provider: wrong values key + missing per-tenant image tags (tenant stuck)
 **Symptom:** a Subscription reconciles but stays **Provisioning** (`tenant-stores` job `Init:ErrImagePull`
 on `aitrust-clickhouse-migrate:latest` / `aitrust-db-migrate:latest` — `not found`), then **Degraded**
