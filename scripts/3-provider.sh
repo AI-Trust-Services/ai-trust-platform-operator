@@ -93,6 +93,8 @@ helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_
   --set exportName="$EXPORT_NAME" \
   --set operator.image.repository="$OPERATOR_IMAGE" \
   --set operator.image.tag="$OPERATOR_TAG" \
+  --set operator.providerNamespace="$PROVIDER_NS" \
+  --set operator.sharedAppHost="$SHARED_APP_HOST" \
   --set operator.instanceDomainSuffix="$INSTANCE_DOMAIN_SUFFIX" \
   --set operator.registry="$REGISTRY" \
   --set operator.tag="$TAG" \
