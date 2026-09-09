@@ -1,23 +1,23 @@
 #!/bin/bash
-# 2b-build-app-images.sh — build + push the MT APP images from the AUTHORITATIVE GIT REPO
+# 2b-build-app-images.sh - build + push the MT APP images from the AUTHORITATIVE GIT REPO
 # (AI-Trust-Services/ai-trust-platform), NOT the stale local checkout. The git repo has the full
 # authorization stack (users service, libs/authorization, openfga-provision, custom roles) that the
 # local copy lacks. These images are what the ONE SHARED app (3b-shared-app.sh) runs.
 #
 # MT differences vs the standalone build:
 #   (a) tag = $TAG (aitrust), distinct from the single-tenant aitrust-1 build;
-#   (b) shell viewUrls are already RELATIVE in the app code — no sed host hack;
+#   (b) shell viewUrls are already RELATIVE in the app code - no sed host hack;
 #   (c) ALSO build+push: users-backend/users-frontend (IAM/roles), openfga-provision (seeds the app's
-#       roles → OpenFGA), keycloak-provision. openfga-provision is the operator's OPENFGA_PROVISION_IMAGE.
+#       roles -> OpenFGA), keycloak-provision. openfga-provision is the operator's OPENFGA_PROVISION_IMAGE.
 # Frontends baked with PUB=$SHARED_APP_HOST. --skip-build to only retag+push. --skip-clone to reuse the clone.
 #
 # PORTABLE / SELF-CONTAINED: the app source is a git clone the script manages INSIDE the bundle
-# ($BUNDLE/.appsrc, gitignored) — NOT a sibling directory — so this works from any location / any
+# ($BUNDLE/.appsrc, gitignored) - NOT a sibling directory - so this works from any location / any
 # machine, for any colleague who has access to the app repo. Overrides:
-#   APP_GIT_URL  — the app repo (default: the AI-Trust-Services repo).
-#   APP_GIT_REF  — branch/tag to build (default: $APP_GIT_REF from config.env; the MT code currently
+#   APP_GIT_URL  - the app repo (default: the AI-Trust-Services repo).
+#   APP_GIT_REF  - branch/tag to build (default: $APP_GIT_REF from config.env; the MT code currently
 #                  lives on 'mircea-mt2' until it is merged to main).
-#   APP_SRC      — point at an EXISTING local checkout to build from that instead of cloning
+#   APP_SRC      - point at an EXISTING local checkout to build from that instead of cloning
 #                  (e.g. your working tree). With APP_SRC set, the script does NOT clone/reset it.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"; load_config
@@ -33,7 +33,7 @@ if [ -n "${APP_SRC:-}" ]; then
   log "Using provided APP_SRC=$SRC (will NOT clone/reset it)"
   SKIP_CLONE_INTERNAL=1
 else
-  SRC="$BUNDLE/.appsrc"   # bundle-internal, gitignored — portable, no sibling assumption
+  SRC="$BUNDLE/.appsrc"   # bundle-internal, gitignored - portable, no sibling assumption
   SKIP_CLONE_INTERNAL=0
 fi
 
@@ -42,22 +42,22 @@ for a in "$@"; do [ "$a" = "--skip-build" ] && SKIP_BUILD=1; [ "$a" = "--skip-cl
 
 if [ "$SKIP_CLONE" -eq 0 ] && [ "${SKIP_CLONE_INTERNAL:-0}" -eq 0 ]; then
   if [ -d "$SRC/.git" ]; then
-    log "Updating app git clone ($SRC) to $APP_GIT_REF…"
+    log "Updating app git clone ($SRC) to $APP_GIT_REF..."
     git -C "$SRC" fetch --depth 1 origin "$APP_GIT_REF" >/dev/null 2>&1 && git -C "$SRC" reset --hard FETCH_HEAD >/dev/null 2>&1 \
       || die "git update failed in $SRC"
   else
-    log "Cloning $APP_GIT_URL@$APP_GIT_REF → $SRC…"
+    log "Cloning $APP_GIT_URL@$APP_GIT_REF -> $SRC..."
     git clone --depth 1 --branch "$APP_GIT_REF" "$APP_GIT_URL" "$SRC" >/dev/null 2>&1 || die "git clone failed"
   fi
 fi
-[ -d "$SRC/libs/authorization" ] || die "app source at $SRC missing libs/authorization — is APP_GIT_REF=$APP_GIT_REF right? (build from git, which HAS the roles + tenancy modules)"
+[ -d "$SRC/libs/authorization" ] || die "app source at $SRC missing libs/authorization - is APP_GIT_REF=$APP_GIT_REF right? (build from git, which HAS the roles + tenancy modules)"
 COMMIT="$(git -C "$SRC" rev-parse --short HEAD 2>/dev/null || echo unknown)"
 ok "app source = $SRC @ $APP_GIT_REF ($COMMIT) (has authorization + tenancy modules)"
 
 BACKENDS="ai-system-registry monitoring overview alerts compliance decision-trace-analyzer users"
 FRONTENDS="ai-system-registry monitoring overview alerts compliance decision-trace-analyzer users"
 if [ "$SKIP_BUILD" -eq 0 ]; then
-  log "Building MT app images from $SRC (PUB=$PUB, tag=$TAG)…"
+  log "Building MT app images from $SRC (PUB=$PUB, tag=$TAG)..."
   cd "$SRC"
   for c in $BACKENDS; do docker build -q -t aitrust/$c-backend:build -f $c/backend/Dockerfile . >/dev/null; done
   docker build -q -t aitrust/db-migrate:build ./libs/persistence >/dev/null   # git Dockerfile: COPY . . from the libs/persistence context
@@ -76,12 +76,20 @@ if [ "$SKIP_BUILD" -eq 0 ]; then
   docker build -q -t aitrust/decision-trace-analyzer-frontend:build --build-arg VITE_DTA_API_BASE=/api/dta/v1 ./decision-trace-analyzer/frontend >/dev/null
   docker build -q -t aitrust/overview-frontend:build --build-arg VITE_OVERVIEW_API_BASE=/api/overview/v1 --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts --build-arg VITE_REGISTRY_URL=$PUB/registry --build-arg VITE_COMPLIANCE_URL=$PUB/compliance --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 --build-arg VITE_USERS_API_BASE=/api/users/v1 ./overview/frontend >/dev/null
   docker build -q -t aitrust/users-frontend:build --build-arg VITE_USERS_API_BASE=/api/users/v1 ./users/frontend >/dev/null
+  # marketplace: backend (repo-root ctx), frontend (VITE base baked), health-worker (repo-root ctx).
+  docker build -q -t aitrust/marketplace-backend:build -f marketplace/backend/Dockerfile . >/dev/null
+  docker build -q -t aitrust/marketplace-frontend:build --build-arg VITE_MARKETPLACE_API_BASE=/api/marketplace/v1 ./marketplace/frontend >/dev/null
+  docker build -q -t aitrust/marketplace-health-worker:build -f marketplace-health-worker/Dockerfile . >/dev/null
   ok "images built"
 fi
 
-log "Retag + push to $REGISTRY:$TAG…"
+log "Retag + push to $REGISTRY:$TAG..."
 push(){ local local_tag=$1 remote=$2; docker tag "$local_tag" "$remote"; docker push -q "$remote" >/dev/null && echo "  pushed $remote"; }
 for c in $BACKENDS; do push aitrust/$c-backend:build $REGISTRY/aitrust-$c-backend:$TAG; done
 for c in $FRONTENDS; do push aitrust/$c-frontend:build $REGISTRY/aitrust-$c-frontend:$TAG; done
 for c in db-migrate clickhouse-migrate keycloak-provision openfga-provision policy-checker-worker clickhouse-consumer rmq-bridge shell; do push aitrust/$c:build $REGISTRY/aitrust-$c:$TAG; done
-ok "all MT app images pushed to $REGISTRY (tag $TAG) from git @ $COMMIT — incl users (IAM) + openfga-provision (roles)"
+# marketplace images (backend :8009 + frontend :80 + health-worker), named to match the gold render.
+push aitrust/marketplace-backend:build $REGISTRY/aitrust-marketplace-backend:$TAG
+push aitrust/marketplace-frontend:build $REGISTRY/aitrust-marketplace-frontend:$TAG
+push aitrust/marketplace-health-worker:build $REGISTRY/aitrust-marketplace-health-worker:$TAG
+ok "all MT app images pushed to $REGISTRY (tag $TAG) from git @ $COMMIT - incl users (IAM) + openfga-provision (roles)"
