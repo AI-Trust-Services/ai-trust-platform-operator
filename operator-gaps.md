@@ -166,6 +166,32 @@ line. 3b seeds ONE shared app OpenFGA store; marketplace's own permission (`mark
 in that model. If the marketplace permission isn't in the seeded model, `require_permission` 403s — verify
 the app-role model (openfga-provision from `mircea-marketplace`) includes the marketplace relations.
 
+### LIVE-I — Subscription API group hardcoded (breaks a distinct-group side-by-side provider)
+**Symptom:** the mesh portal tile lists the WRONG group so clicking the namespace does nothing; the
+syncagent logs `could not find sub.market.msp/v1alpha1 Subscription`.
+**Root cause:** `sub.aitrust.msp` was hardcoded in FOUR places — the operator binary (`operator/main.go`
+GVK+finalizer), the CRD (`crds/subscription.yaml`), the syncagent RBAC + PublishedResource
+(`templates/syncagent.yaml`), and the portal tile (`templates/portal-integration.yaml`) — while only the
+APIExport *name* honoured `EXPORT_NAME`.
+**Fix (branch `marketplace`):** parameterize by `exportName` everywhere — operator reads
+`SUBSCRIPTION_GROUP` env (local mode); CRD moved to `templates/` (name+group templated); syncagent +
+operator RBAC + portal tile use `.Values.exportName`. Verified end-to-end on `sub.market.msp`.
+
+### LIVE-J — 3-provider leaves operator.providerNamespace / sharedAppHost at chart defaults
+**Symptom:** operator logs `providerNS: aitrust-msp` + empty `SHARED_APP_HOST` even when deploying into
+`aitrust-market` → tenant oauth2-proxies land in the WRONG namespace, per-tenant hosts don't resolve.
+**Root cause:** `3-provider.sh` didn't `--set operator.providerNamespace` / `operator.sharedAppHost`.
+**Fix (branch `marketplace`):** added both `--set`s. Live workaround: `kubectl set env
+deploy/aitrust-operator PROVIDER_NS=<ns> SHARED_APP_HOST=<host>`.
+
+### LIVE-K — helm-vs-kubectl-set env conflict + hand-applied objects block re-runs
+**Symptom:** `helm upgrade` fails `conflict with "kubectl-set" … env[name="OPENFGA_STORE_ID"]`, and
+`<obj> … cannot be imported into the current release: … managed-by: Helm`.
+**Root cause:** `OPENFGA_STORE_ID` is set post-release by `kubectl set env` (separate field manager);
+and bare-`kubectl apply`'d objects aren't helm-owned so the release can't adopt them.
+**Fix/workaround:** re-inject `OPENFGA_STORE_ID` after each helm upgrade; never hand-apply release-owned
+objects. Longer-term: have the operator resolve the store id itself (query mesh OpenFGA by name).
+
 ### LIVE-H — 3b is not idempotent for the one-shot Jobs (re-run fails)
 **Symptom:** re-running `3b-shared-app.sh` fails: `Job.batch "db-migrate" is invalid: spec.template:
 field is immutable` (same for clickhouse-migrate/keycloak-provision/minio-init).
