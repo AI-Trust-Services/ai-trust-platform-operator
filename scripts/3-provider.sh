@@ -95,7 +95,10 @@ helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_
   --set operator.image.tag="$OPERATOR_TAG" \
   --set operator.providerNamespace="$PROVIDER_NS" \
   --set operator.sharedAppHost="$SHARED_APP_HOST" \
-  --set operator.instanceDomainSuffix="$INSTANCE_DOMAIN_SUFFIX" \
+  --set operator.domainSuffix="$INSTANCE_DOMAIN_SUFFIX" \
+  --set operator.provisionImage="$REGISTRY/aitrust-keycloak-provision:$TAG" \
+  --set operator.dbMigrateImage="$REGISTRY/aitrust-db-migrate:$TAG" \
+  --set operator.chMigrateImage="$REGISTRY/aitrust-clickhouse-migrate:$TAG" \
   --set operator.registry="$REGISTRY" \
   --set operator.tag="$TAG" \
   --set operator.mspWorkerLabel="$MSP_WORKER_LABEL" \
