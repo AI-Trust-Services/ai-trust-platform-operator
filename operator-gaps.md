@@ -207,6 +207,29 @@ Live workaround: `kubectl set env deploy/aitrust-operator INSTANCE_DOMAIN_SUFFIX
 DBMIGRATE_IMAGE=…:market CHMIGRATE_IMAGE=…:market PROVISION_IMAGE=…:market`, then delete the stuck
 `tenant-stores-<org>` job so the operator recreates it. Verified: subscription reached **Ready**.
 
+### LIVE-M — operator `KC_PUBLIC_URL` unset → per-tenant `ERR_TOO_MANY_REDIRECTS`
+**Symptom:** a tenant reaches **Ready** and its host resolves, but opening
+`https://ai-trust-<org>.<suffix>/` redirect-loops forever (`ERR_TOO_MANY_REDIRECTS`); the Location on
+each hop is `https://ai-trust-<org>.<suffix>/realms/<org>/protocol/openid-connect/auth?…state=<nested>`
+— i.e. the login target is the **tenant's own host**, which has no `/realms/` route, so oauth2-proxy
+re-enters its sign-in flow and re-encodes `state` on every bounce.
+**Root cause:** `operator/config.go:62` reads `kcPublic = env("KC_PUBLIC_URL", "")` **defaulting to
+empty**, and `3-provider.sh` never set it (chart `values.yaml operator.kcPublicUrl: ""`). The template
+`oauth2-proxy-org.tmpl` builds `--login-url=__KC_PUBLIC_REALM__/protocol/openid-connect/auth` where
+`__KC_PUBLIC_REALM__ = kcPublic + "/realms/" + org` (`reconciler.go:246`). With `kcPublic=""` the
+login-url is the **relative** `/realms/<org>/…` — the browser resolves it against the tenant host.
+(`--login-url` MUST be absolute; only the in-cluster issuer/redeem/jwks may be internal — those were
+fine.) The shared-app oauth2-proxy escaped this because it uses `$(KEYCLOAK_PUBLIC_URL)/realms/…` from
+`app-config`; the per-tenant proxy has no such config.
+**Fix (branch `marketplace`):** `KC_PUBLIC_URL` must be the shoot's **apex** Keycloak base (what
+Keycloak advertises as `authorization_endpoint`: `https://<apex>/keycloak`, NOT the app host). Wired:
+`lib.sh` defaults `KC_PUBLIC_URL` to `https://$INSTANCE_DOMAIN_SUFFIX/keycloak` (overridable in
+`config.env`); `3-provider.sh` passes `--set operator.kcPublicUrl="$KC_PUBLIC_URL"`; `config.env.market`
+sets it explicitly. Live workaround (applied): `kubectl -n <ns> set env deploy/aitrust-operator
+KC_PUBLIC_URL=https://<apex>/keycloak`, then re-annotate the Subscription to force a re-stamp of
+`oauth2-proxy-<org>`. Verified: tenant host now 302s **once** to the apex Keycloak login page (HTTP 200,
+`kc-form-login`) — no loop.
+
 ### LIVE-H — 3b is not idempotent for the one-shot Jobs (re-run fails)
 **Symptom:** re-running `3b-shared-app.sh` fails: `Job.batch "db-migrate" is invalid: spec.template:
 field is immutable` (same for clickhouse-migrate/keycloak-provision/minio-init).

@@ -34,6 +34,12 @@ load_config(){
   : "${OPERATOR_IMAGE:=ghcr.io/ai-trust-services/aitrust-operator}"; : "${OPERATOR_TAG:=v1}"
   : "${REGISTRY:=ghcr.io/ai-trust-services}"; : "${TAG:=aitrust}"
   : "${SHARED_APP_HOST:=}"
+  # Public browser-facing mesh Keycloak base (incl /keycloak). Feeds the operator's KC_PUBLIC_URL, which
+  # builds each tenant oauth2-proxy's --login-url. MUST be an ABSOLUTE URL on the shoot's apex Gardener
+  # host (what Keycloak advertises as authorization_endpoint); if empty the operator emits a RELATIVE
+  # login-url (/realms/<org>/...) that resolves against the tenant host -> infinite redirect loop
+  # (ERR_TOO_MANY_REDIRECTS). Defaults to the apex domain suffix + /keycloak.
+  : "${KC_PUBLIC_URL:=${INSTANCE_DOMAIN_SUFFIX:+https://$INSTANCE_DOMAIN_SUFFIX/keycloak}}"
   : "${ORG_NAME:=aitrust}"; : "${ACCOUNT_NAME:=tenant}"; : "${INSTANCE_NAME:=my-subscription}"; : "${INSTANCE_PLAN:=standard}"
   # Payload cluster shoot — must be set in config.env.
   : "${SHOOT_NAME:=}"
@@ -41,7 +47,7 @@ load_config(){
   export SHOOT_NAME PROJECT GARDENER_API MESH_NS GATEWAY_NS GATEWAY_NAME KCP_INCLUSTER_URL
   export WORKER_TYPE WORKER_POOL WORKER_ZONE WORKER_MIN WORKER_MAX WORKER_IMAGE_VERSION MSP_WORKER_LABEL
   export PROVIDER_WS EXPORT_NAME PROVIDER_NS AITRUST_APP_CHART AITRUST_PM_CHART
-  export OPERATOR_IMAGE OPERATOR_TAG REGISTRY TAG INSTANCE_DOMAIN_SUFFIX SHARED_APP_HOST
+  export OPERATOR_IMAGE OPERATOR_TAG REGISTRY TAG INSTANCE_DOMAIN_SUFFIX SHARED_APP_HOST KC_PUBLIC_URL
   export CONTENT_SCHEME AITRUST_CONTENT_HOST DEMO_USER ORG_NAME ACCOUNT_NAME INSTANCE_NAME INSTANCE_PLAN
 }
 
