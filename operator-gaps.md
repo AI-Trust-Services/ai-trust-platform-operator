@@ -214,6 +214,31 @@ Verified: OpenFGA `check(user:mircea.craciun@sap.com, can_manage_iam, platform:g
 full platform-administrator nav + username restored. **Longer-term (also noted in LIVE-K):** have the
 operator resolve + inject the store id itself so this never depends on a 3b post-step.
 
+### LIVE-O — stale openfga-provision image seeds a model missing `can_manage_marketplace` → empty nav
+**Symptom:** login works, username shows, but STILL only the Overview tab. `users-backend /me/permissions`
+crashes: `openfga_sdk.exceptions.ValidationException: [check] HTTP 400 relation
+'platform#can_manage_marketplace' not found`. Because `/me/permissions` batch-checks EVERY app relation
+via `list_allowed_relations`, one unknown relation 400s the WHOLE call → permissions list is empty → the
+shell hides every gated nav node (Overview is ungated, so only it shows).
+**Root cause:** the app's OpenFGA model is built dynamically from `RELATION_BY_PERMISSION` by
+`infra/openfga-provision/provision.py`. The marketplace branch adds `MARKETPLACE_MANAGE →
+can_manage_marketplace` (16 relations). But the store had been seeded by a STALE provisioner image —
+`mirceacraciun795/aitrust-openfga-provision:aitrust` (the pre-marketplace Docker Hub image, `INITIAL_ADMIN_USER=admin`,
+`OPENFGA_STORE_NAME=aitrust`) — which only knew 15 relations. 3b's own `20.yaml` correctly references
+`$REGISTRY/aitrust-openfga-provision:$TAG` (= the `:market` GHCR image, which 2b DOES build from the
+branch and which DOES include the relation) — the store was simply seeded in an EARLIER shared-app run
+with the old image and never re-provisioned. `provision.py` is idempotent + self-healing (it writes a new
+model version when relations change and re-seeds role tuples), so a clean deploy on the market images is
+fine; the break was a store carried over from a stale seed.
+**Fix (live):** wrote a new authorization model to the store adding `can_manage_marketplace` (relation +
+metadata `directly_related_user_types:[{role#member}]`) and the tuple
+`role:platform_administrator#member → can_manage_marketplace → platform:global`. Verified: all 16
+relations now `check=allowed` for the admin; `/me/permissions` returns the full set → full nav incl.
+Marketplace. **Guard for the future:** ensure the openfga-provision job runs the SAME app-branch image as
+the backends (`$REGISTRY/aitrust-*:$TAG`), and prefer re-running `provision.py` (self-heals the model)
+over hand-editing when a relation is missing. A model/relation-count assertion in 3b (built vs stored)
+would catch this at deploy time.
+
 ### LIVE-L — 3-provider: wrong values key + missing per-tenant image tags (tenant stuck)
 **Symptom:** a Subscription reconciles but stays **Provisioning** (`tenant-stores` job `Init:ErrImagePull`
 on `aitrust-clickhouse-migrate:latest` / `aitrust-db-migrate:latest` — `not found`), then **Degraded**
