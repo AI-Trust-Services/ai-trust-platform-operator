@@ -61,6 +61,12 @@ func main() {
 		finalizer = "subscription.sub.aitrust.remote/finalizer"
 		fedPrefix = "fed-"
 		remoteCluster = env("PAYLOAD_CLUSTER_NAME", "")
+	} else {
+		// local mode: the Subscription API group is env-overridable so a second provider can run
+		// side-by-side under a distinct group (e.g. sub.market.msp). Defaults to the stock group.
+		grp := env("SUBSCRIPTION_GROUP", "sub.aitrust.msp")
+		gvk = schema.GroupVersionKind{Group: grp, Version: "v1alpha1", Kind: "Subscription"}
+		finalizer = "subscription." + grp + "/finalizer"
 	}
 
 	mgr, err := manager.New(ctrl.GetConfigOrDie(), manager.Options{})

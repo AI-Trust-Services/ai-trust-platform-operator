@@ -27,11 +27,11 @@ data:
               "keepSelectedForChildren": true,
               "context": {
                 "resourceDefinition": {
-                  "apiGroup": "sub_aitrust_msp",
+                  "apiGroup": {{ .Values.exportName | replace "." "_" | toJson }},
                   "version": "v1alpha1",
                   "entity": "Subscription",
                   "entityCollection": "Subscriptions",
-                  "group": "sub.aitrust.msp",
+                  "group": {{ .Values.exportName | toJson }},
                   "plural": "subscriptions",
                   "singular": "subscription",
                   "kind": "Subscription",
@@ -69,7 +69,7 @@ data:
                     "id": "subscription",
                     "contextKey": "subscriptionId",
                     "graphqlEntity": {
-                      "group": "sub.aitrust.msp",
+                      "group": {{ .Values.exportName | toJson }},
                       "kind": "Subscription",
                       "query": "{ metadata { name } }",
                       "version": "v1alpha1"
