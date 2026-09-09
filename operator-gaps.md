@@ -192,6 +192,21 @@ and bare-`kubectl apply`'d objects aren't helm-owned so the release can't adopt 
 **Fix/workaround:** re-inject `OPENFGA_STORE_ID` after each helm upgrade; never hand-apply release-owned
 objects. Longer-term: have the operator resolve the store id itself (query mesh OpenFGA by name).
 
+### LIVE-L — 3-provider: wrong values key + missing per-tenant image tags (tenant stuck)
+**Symptom:** a Subscription reconciles but stays **Provisioning** (`tenant-stores` job `Init:ErrImagePull`
+on `aitrust-clickhouse-migrate:latest` / `aitrust-db-migrate:latest` — `not found`), then **Degraded**
+(`HTTPRoute … hostnames[0]: Invalid value: "ai-trust-<org>."` — empty domain suffix).
+**Root cause:** (a) `3-provider.sh` set `--set operator.instanceDomainSuffix`, but the chart reads
+`.Values.operator.domainSuffix` (KEY MISMATCH) → `INSTANCE_DOMAIN_SUFFIX` env stays empty → per-tenant
+host `ai-trust-<org>.` is invalid. (b) `operator.dbMigrateImage`/`chMigrateImage`/`provisionImage`
+default to `:latest`/`:aitrust` and 3-provider never overrode them → the per-tenant provisioning job
+pulls non-existent `:latest` images.
+**Fix (branch `marketplace`):** `3-provider.sh` now passes `--set operator.domainSuffix=$INSTANCE_DOMAIN_SUFFIX`
+(correct key) and `--set operator.{provisionImage,dbMigrateImage,chMigrateImage}=$REGISTRY/aitrust-*:$TAG`.
+Live workaround: `kubectl set env deploy/aitrust-operator INSTANCE_DOMAIN_SUFFIX=<suffix>
+DBMIGRATE_IMAGE=…:market CHMIGRATE_IMAGE=…:market PROVISION_IMAGE=…:market`, then delete the stuck
+`tenant-stores-<org>` job so the operator recreates it. Verified: subscription reached **Ready**.
+
 ### LIVE-H — 3b is not idempotent for the one-shot Jobs (re-run fails)
 **Symptom:** re-running `3b-shared-app.sh` fails: `Job.batch "db-migrate" is invalid: spec.template:
 field is immutable` (same for clickhouse-migrate/keycloak-provision/minio-init).
