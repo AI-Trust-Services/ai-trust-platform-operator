@@ -46,8 +46,8 @@ The operator ships as a single image and supports two deployment topologies via 
 
 ```bash
 # 1. Configure your cluster and registry coordinates
-cp prerequisites/config.env.example prerequisites/config.env
-# edit prerequisites/config.env
+cp scripts/prerequisites/config.env.example scripts/prerequisites/config.env
+# edit scripts/prerequisites/config.env
 
 # 2. Run the installer (single-cluster by default)
 bash install.sh
