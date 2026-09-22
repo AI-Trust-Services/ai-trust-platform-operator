@@ -56,3 +56,10 @@ portalIntegration:
 
 # Where the operator + syncagent themselves run (the MT control plane, one shared app instance).
 nodeSelector: {}
+
+# Optional: name of a pre-existing docker-registry imagePullSecret in the release namespace.
+# Create it before running 3-provider.sh (the script does this automatically when GHCR_USER
+# and GHCR_TOKEN are set). When set, the secret is attached to the aitrust-operator and
+# aitrust-syncagent ServiceAccounts and to the portal-integration Deployment pod spec.
+imagePullSecret:
+  name: ""   # e.g. ghcr-pull

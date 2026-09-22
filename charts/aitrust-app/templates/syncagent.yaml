@@ -10,6 +10,10 @@ kind: ServiceAccount
 metadata:
   name: aitrust-syncagent
   namespace: {{ .Release.Namespace }}
+{{- if .Values.imagePullSecret.name }}
+imagePullSecrets:
+- name: {{ .Values.imagePullSecret.name }}
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

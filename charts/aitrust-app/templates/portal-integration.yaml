@@ -105,6 +105,10 @@ spec:
       {{- with .Values.nodeSelector }}
       nodeSelector: {{ toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.imagePullSecret.name }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecret.name }}
+      {{- end }}
       containers:
       - name: nginx
         image: "{{ .Values.portalIntegration.image.repository }}:{{ .Values.portalIntegration.image.tag }}"

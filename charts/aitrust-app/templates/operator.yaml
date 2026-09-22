@@ -3,6 +3,10 @@ kind: ServiceAccount
 metadata:
   name: aitrust-operator
   namespace: {{ .Release.Namespace }}
+{{- if .Values.imagePullSecret.name }}
+imagePullSecrets:
+- name: {{ .Values.imagePullSecret.name }}
+{{- end }}
 ---
 # Cluster-scoped: the MT operator provisions per-tenant realms + tenant_id isolation inside the ONE
 # shared app, and may patch shared Gateway/HTTPRoutes/ReferenceGrants in the gateway namespace. This

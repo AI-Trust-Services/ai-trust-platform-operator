@@ -87,6 +87,21 @@ else
     | sk apply -f - >/dev/null && ok "installed syncagent CRD from upstream ${SA_REF}" \
     || die "could not install the syncagent PublishedResource CRD (bundle ../crds missing + upstream fetch failed)"
 fi
+# Create imagePullSecret for GHCR when credentials are provided. The secret is referenced
+# by the aitrust-operator and aitrust-syncagent SAs via values.imagePullSecret.name.
+PULL_SECRET_NAME=""
+if [ -n "${GHCR_USER:-}" ] && [ -n "${GHCR_TOKEN:-}" ]; then
+  kubectl --kubeconfig "$SHOOT_KUBECONFIG" create namespace "$PROVIDER_NS" --dry-run=client -o yaml \
+    | kubectl --kubeconfig "$SHOOT_KUBECONFIG" apply -f - >/dev/null
+  kubectl --kubeconfig "$SHOOT_KUBECONFIG" -n "$PROVIDER_NS" \
+    create secret docker-registry ghcr-pull \
+    --docker-server=ghcr.io \
+    --docker-username="$GHCR_USER" \
+    --docker-password="$GHCR_TOKEN" \
+    --dry-run=client -o yaml | kubectl --kubeconfig "$SHOOT_KUBECONFIG" apply -f - >/dev/null
+  PULL_SECRET_NAME="ghcr-pull"
+  ok "imagePullSecret ghcr-pull created in $PROVIDER_NS"
+fi
 helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_APP_CHART" \
   --namespace "$PROVIDER_NS" --create-namespace \
   --set operator.image.repository="$OPERATOR_IMAGE" \
@@ -98,6 +113,7 @@ helm --kubeconfig "$SHOOT_KUBECONFIG" upgrade -i aitrust-app "$HERE/../$AITRUST_
   --set operator.federationMode="${FEDERATION_MODE:-local}" \
   --set kcpKubeconfig.inClusterServerUrl="$KCP_INCLUSTER_URL" \
   --set-file kcpKubeconfig.adminContent="$KC_WS" \
+  ${PULL_SECRET_NAME:+--set imagePullSecret.name="$PULL_SECRET_NAME"} \
   || die "aitrust-app helm install FAILED (see error above) — inspect: helm --kubeconfig \$SHOOT_KUBECONFIG get manifest -n $PROVIDER_NS aitrust-app"
 ok "workload chart installed (MT operator + syncagent + portal nginx in $PROVIDER_NS)"
 
