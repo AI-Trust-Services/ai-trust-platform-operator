@@ -12,7 +12,7 @@
 #  --mode federated  cross-cluster deploy — operator uses REMOTE_KUBECONFIG to
 #                    provision on the payload cluster from a Central controller
 # ============================================================================
-set -uo pipefail
+set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 c_blu=$'\033[36m'; c_grn=$'\033[32m'; c_rst=$'\033[0m'
 say(){ echo "${c_blu}==>${c_rst} $*"; }
