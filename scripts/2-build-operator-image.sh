@@ -9,7 +9,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; source "$HERE/lib.sh"; loa
 OP="$HERE/../operator"
 
 log "Building $OPERATOR_IMAGE:$OPERATOR_TAG (embeds only manifests/*.tmpl)…"
-docker build -t "$OPERATOR_IMAGE:$OPERATOR_TAG" "$OP"
+docker build --platform "${TARGET_ARCH:-linux/amd64}" -t "$OPERATOR_IMAGE:$OPERATOR_TAG" "$OP"
 log "Pushing…"
 docker push "$OPERATOR_IMAGE:$OPERATOR_TAG"
 ok "operator image pushed: $OPERATOR_IMAGE:$OPERATOR_TAG"
