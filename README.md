@@ -37,9 +37,13 @@ The operator ships as a single image and supports two deployment topologies via 
 
 ### Prerequisites
 
-- Kubernetes cluster with [ApeiroRA Platform Mesh](https://documentation.apeirora.eu) installed and Ready
-- [KCP](https://github.com/kcp-dev/kcp) provider workspace access
-- Tools: `kubectl`, `helm` 3, `docker`, `jq`, `python3`
+Before running the installer, ensure the following are in place:
+
+- **ApeiroRA Platform Mesh** installed and Ready on the shoot cluster — `0-check-prerequisites.sh` verifies this; provisioning it is a separate bundle (`Standard_Platform_Mesh`)
+- **KCP** provider workspace access on `:8443`
+- **Wildcard DNS** configured for `INSTANCE_DOMAIN_SUFFIX` and `SHARED_APP_HOST` — `0-check-prerequisites.sh` checks DNS resolution; the gateway listener and TLS certificate must also exist on the shoot
+- **App repo access** — `2b-build-app-images.sh` clones `github.com/AI-Trust-Services/ai-trust-platform` at `APP_GIT_REF_DEFAULT`; the branch must be reachable from the build host
+- **Tools:** `kubectl`, `helm` 3, `docker`, `git`, `jq`, `python3`
 - Go 1.26+ (only if building the operator from source)
 
 ### Install
@@ -71,7 +75,9 @@ bash install.sh --mode federated
 ```
 
 `install.sh` will fail fast with a clear message if `REMOTE_KUBECONFIG` is unset or the file
-does not exist, before the pipeline starts. (`scripts/deploy.sh`, steps 0–7):
+does not exist, before the pipeline starts.
+
+The installer runs the full deploy pipeline (`scripts/deploy.sh`, steps 0–7):
 
 | Step | Does |
 |------|------|
