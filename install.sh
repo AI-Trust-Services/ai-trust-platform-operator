@@ -6,11 +6,16 @@
 #  (the payload cluster). Each Enable creates a Subscription and the operator
 #  provisions a per-tenant Keycloak realm inside the shared app.
 #
-#  Usage:  MSYS_NO_PATHCONV=1 wsl.exe -d Ubuntu -- bash '<bundle>/install.sh' [--mode local|federated]
+#  Usage (macOS / Linux):
+#    bash install.sh [--mode local|federated]
+#
+#  Usage (Windows — run inside WSL):
+#    MSYS_NO_PATHCONV=1 wsl.exe -d Ubuntu -- bash '<bundle>/install.sh' [--mode local|federated]
 #
 #  --mode local      (default) single-cluster deploy — operator runs in-cluster
 #  --mode federated  cross-cluster deploy — operator uses REMOTE_KUBECONFIG to
-#                    provision on the payload cluster from a Central controller
+#                    provision on the payload cluster from a Central controller.
+#                    Requires env vars: REMOTE_KUBECONFIG (path to payload cluster SA kubeconfig)
 # ============================================================================
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -29,6 +34,20 @@ if [[ "$FEDERATION_MODE" != "local" && "$FEDERATION_MODE" != "federated" ]]; the
   echo "Error: --mode must be 'local' or 'federated'"; exit 1
 fi
 export FEDERATION_MODE
+
+# Pre-flight check for federated mode — fail fast before the pipeline starts.
+if [[ "$FEDERATION_MODE" == "federated" ]]; then
+  if [[ -z "${REMOTE_KUBECONFIG:-}" ]]; then
+    echo "Error: --mode federated requires REMOTE_KUBECONFIG to be set."
+    echo "  Export the path to the payload cluster SA kubeconfig, e.g.:"
+    echo "  export REMOTE_KUBECONFIG=/path/to/payload-kubeconfig.yaml"
+    exit 1
+  fi
+  if [[ ! -f "$REMOTE_KUBECONFIG" ]]; then
+    echo "Error: REMOTE_KUBECONFIG file not found: $REMOTE_KUBECONFIG"
+    exit 1
+  fi
+fi
 
 echo ""
 echo "######################################################################"

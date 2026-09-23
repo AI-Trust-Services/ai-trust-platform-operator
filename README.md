@@ -56,7 +56,22 @@ bash install.sh
 bash install.sh --mode federated
 ```
 
-The installer runs the full deploy pipeline (`scripts/deploy.sh`, steps 0–7):
+#### Federated (cross-cluster) mode
+
+In federated mode the operator runs on a Central cluster and provisions tenants on a separate
+Payload cluster. Before running `bash install.sh --mode federated`, export the required env var:
+
+| Env var | Description |
+|---------|-------------|
+| `REMOTE_KUBECONFIG` | **Required** — path to the Payload cluster SA kubeconfig |
+
+```bash
+export REMOTE_KUBECONFIG=/path/to/payload-kubeconfig.yaml
+bash install.sh --mode federated
+```
+
+`install.sh` will fail fast with a clear message if `REMOTE_KUBECONFIG` is unset or the file
+does not exist, before the pipeline starts. (`scripts/deploy.sh`, steps 0–7):
 
 | Step | Does |
 |------|------|
