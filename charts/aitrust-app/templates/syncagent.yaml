@@ -10,7 +10,7 @@ kind: ServiceAccount
 metadata:
   name: aitrust-syncagent
   namespace: {{ .Release.Namespace }}
-{{- if .Values.imagePullSecret.name }}
+{{- if ((.Values.imagePullSecret).name) }}
 imagePullSecrets:
 - name: {{ .Values.imagePullSecret.name }}
 {{- end }}
