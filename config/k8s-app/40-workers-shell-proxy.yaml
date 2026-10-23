@@ -20,25 +20,6 @@ spec:
             - { name: CLICKHOUSE_PASSWORD, valueFrom: { secretKeyRef: { name: app-secrets, key: CLICKHOUSE_PASSWORD } } }
             - { name: ALERT_POLL_INTERVAL, value: "10" }
 ---
-# ---------------- MARKETPLACE health worker (probes discovered apps; no HTTP port) ----------------
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: marketplace-health-worker, namespace: ai-trust-app }
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: marketplace-health-worker } }
-  template:
-    metadata: { labels: { app: marketplace-health-worker } }
-    spec:
-      containers:
-        - name: marketplace-health-worker
-          image: aitrust/marketplace-health-worker:kind
-          imagePullPolicy: Always
-          env:
-            - { name: DATABASE_URL, valueFrom: { secretKeyRef: { name: app-secrets, key: DATABASE_URL } } }
-            - { name: MARKETPLACE_HEALTH_INTERVAL, value: "30" }
-            - { name: MARKETPLACE_ALLOW_PRIVATE_DISCOVERY, value: "true" }
----
 apiVersion: apps/v1
 kind: Deployment
 metadata: { name: otel-clickhouse-consumer, namespace: ai-trust-app }
