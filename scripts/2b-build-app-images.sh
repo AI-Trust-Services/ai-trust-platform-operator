@@ -59,23 +59,23 @@ FRONTENDS="ai-system-registry monitoring overview alerts compliance decision-tra
 if [ "$SKIP_BUILD" -eq 0 ]; then
   log "Building MT app images from $SRC (PUB=$PUB, tag=$TAG)…"
   cd "$SRC"
-  for c in $BACKENDS; do docker build -q -t aitrust/$c-backend:build -f $c/backend/Dockerfile . >/dev/null; done
-  docker build -q -t aitrust/db-migrate:build ./libs/persistence >/dev/null   # git Dockerfile: COPY . . from the libs/persistence context
-  docker build -q -t aitrust/clickhouse-migrate:build ./libs/clickhouse >/dev/null
-  docker build -q -t aitrust/keycloak-provision:build ./infra/keycloak >/dev/null
-  docker build -q -t aitrust/openfga-provision:build -f infra/openfga-provision/Dockerfile . >/dev/null   # repo-root ctx (COPYs libs/authorization)
-  docker build -q -t aitrust/policy-checker-worker:build -f policy-checker-worker/Dockerfile . >/dev/null
-  docker build -q -t aitrust/clickhouse-consumer:build -f consumers/clickhouse-consumer/Dockerfile . >/dev/null
-  docker build -q -t aitrust/rmq-bridge:build ./otel-pipeline/rmq-bridge >/dev/null
-  docker build -q -t aitrust/shell:build ./shell >/dev/null
+  for c in $BACKENDS; do docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/$c-backend:build -f $c/backend/Dockerfile . >/dev/null; done
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/db-migrate:build ./libs/persistence >/dev/null   # git Dockerfile: COPY . . from the libs/persistence context
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/clickhouse-migrate:build ./libs/clickhouse >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/keycloak-provision:build ./infra/keycloak >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/openfga-provision:build -f infra/openfga-provision/Dockerfile . >/dev/null   # repo-root ctx (COPYs libs/authorization)
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/policy-checker-worker:build -f policy-checker-worker/Dockerfile . >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/clickhouse-consumer:build -f consumers/clickhouse-consumer/Dockerfile . >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/rmq-bridge:build ./otel-pipeline/rmq-bridge >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/shell:build ./shell >/dev/null
   # frontends (VITE_* baked). users frontend = the IAM/Role-Management MFE.
-  docker build -q -t aitrust/ai-system-registry-frontend:build --build-arg VITE_REGISTRY_API_BASE=/api/registry/v1 ./ai-system-registry/frontend >/dev/null
-  docker build -q -t aitrust/monitoring-frontend:build --build-arg VITE_MONITORING_API_BASE=/api/monitoring/v1 ./monitoring/frontend >/dev/null
-  docker build -q -t aitrust/alerts-frontend:build --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts ./alerts/frontend >/dev/null
-  docker build -q -t aitrust/compliance-frontend:build --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 --build-arg VITE_REGISTRY_API_BASE=/api/registry/v1 ./compliance/frontend >/dev/null
-  docker build -q -t aitrust/decision-trace-analyzer-frontend:build --build-arg VITE_DTA_API_BASE=/api/dta/v1 ./decision-trace-analyzer/frontend >/dev/null
-  docker build -q -t aitrust/overview-frontend:build --build-arg VITE_OVERVIEW_API_BASE=/api/overview/v1 --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts --build-arg VITE_REGISTRY_URL=$PUB/registry --build-arg VITE_COMPLIANCE_URL=$PUB/compliance --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 --build-arg VITE_USERS_API_BASE=/api/users/v1 ./overview/frontend >/dev/null
-  docker build -q -t aitrust/users-frontend:build --build-arg VITE_USERS_API_BASE=/api/users/v1 ./users/frontend >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/ai-system-registry-frontend:build --build-arg VITE_REGISTRY_API_BASE=/api/registry/v1 ./ai-system-registry/frontend >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/monitoring-frontend:build --build-arg VITE_MONITORING_API_BASE=/api/monitoring/v1 ./monitoring/frontend >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/alerts-frontend:build --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts ./alerts/frontend >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/compliance-frontend:build --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 --build-arg VITE_REGISTRY_API_BASE=/api/registry/v1 ./compliance/frontend >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/decision-trace-analyzer-frontend:build --build-arg VITE_DTA_API_BASE=/api/dta/v1 ./decision-trace-analyzer/frontend >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/overview-frontend:build --build-arg VITE_OVERVIEW_API_BASE=/api/overview/v1 --build-arg VITE_ALERTS_API_BASE=/api/alerts/v1 --build-arg VITE_ALERTS_URL=$PUB/alerts --build-arg VITE_REGISTRY_URL=$PUB/registry --build-arg VITE_COMPLIANCE_URL=$PUB/compliance --build-arg VITE_COMPLIANCE_API_BASE=/api/compliance/v1 --build-arg VITE_USERS_API_BASE=/api/users/v1 ./overview/frontend >/dev/null
+  docker build --platform "${TARGET_ARCH:-linux/amd64}" -q -t aitrust/users-frontend:build --build-arg VITE_USERS_API_BASE=/api/users/v1 ./users/frontend >/dev/null
   ok "images built"
 fi
 

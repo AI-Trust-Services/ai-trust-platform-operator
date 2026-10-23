@@ -37,17 +37,21 @@ The operator ships as a single image and supports two deployment topologies via 
 
 ### Prerequisites
 
-- Kubernetes cluster with [ApeiroRA Platform Mesh](https://documentation.apeirora.eu) installed and Ready
-- [KCP](https://github.com/kcp-dev/kcp) provider workspace access
-- Tools: `kubectl`, `helm` 3, `docker`, `jq`, `python3`
+Before running the installer, ensure the following are in place:
+
+- **ApeiroRA Platform Mesh** installed and Ready on the shoot cluster — `0-check-prerequisites.sh` verifies this; provisioning it is a separate bundle (`Standard_Platform_Mesh`)
+- **KCP** provider workspace access on `:8443`
+- **Wildcard DNS** configured for `INSTANCE_DOMAIN_SUFFIX` and `SHARED_APP_HOST` — `0-check-prerequisites.sh` checks DNS resolution; the gateway listener and TLS certificate must also exist on the shoot
+- **App repo access** — `2b-build-app-images.sh` clones `github.com/AI-Trust-Services/ai-trust-platform` at `APP_GIT_REF_DEFAULT`; the branch must be reachable from the build host
+- **Tools:** `kubectl`, `helm` 3, `docker`, `git`, `jq`, `python3`
 - Go 1.26+ (only if building the operator from source)
 
 ### Install
 
 ```bash
 # 1. Configure your cluster and registry coordinates
-cp prerequisites/config.env.example prerequisites/config.env
-# edit prerequisites/config.env
+cp scripts/prerequisites/config.env.example scripts/prerequisites/config.env
+# edit scripts/prerequisites/config.env
 
 # 2. Run the installer (single-cluster by default)
 bash install.sh
@@ -55,6 +59,23 @@ bash install.sh
 # Federated (cross-cluster) mode:
 bash install.sh --mode federated
 ```
+
+#### Federated (cross-cluster) mode
+
+In federated mode the operator runs on a Central cluster and provisions tenants on a separate
+Payload cluster. Before running `bash install.sh --mode federated`, export the required env var:
+
+| Env var | Description |
+|---------|-------------|
+| `REMOTE_KUBECONFIG` | **Required** — path to the Payload cluster SA kubeconfig |
+
+```bash
+export REMOTE_KUBECONFIG=/path/to/payload-kubeconfig.yaml
+bash install.sh --mode federated
+```
+
+`install.sh` will fail fast with a clear message if `REMOTE_KUBECONFIG` is unset or the file
+does not exist, before the pipeline starts.
 
 The installer runs the full deploy pipeline (`scripts/deploy.sh`, steps 0–7):
 
@@ -100,6 +121,12 @@ Two Helm charts + the shared app + the subscription operator:
 | **`charts/aitrust-app`** (workload) | cluster ns `aitrust-msp` | MT operator, api-syncagent, portal nginx |
 | **`charts/aitrust-pm-app`** (kcp) | workspace `root:providers:ai-trust` | APIExport `sub.aitrust.msp`, ContentConfiguration, ProviderMetadata, RBAC |
 | **shared app** (`3b-shared-app.sh`) | cluster ns `aitrust-msp` | ONE multi-tenant AI Trust stack (`TENANCY_MODE=jwt`) |
+
+> **Renaming the product** requires updating both charts — there is no single shared value:
+> - Portal tile label: `--set portalIntegration.categoryLabel="New Name"` on the `aitrust-app` release (shoot cluster)
+> - Marketplace catalog name: `--set provider.displayName="New Name"` on the `aitrust-pm-app` release (KCP workspace `root:providers:ai-trust`)
+>
+> Both upgrades must be applied together to keep the two names in sync.
 
 **Tenant provisioning flow:**
 
